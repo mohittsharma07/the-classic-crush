@@ -1,0 +1,6 @@
+{
+  "name": "The Classic Crush | Bakery & Café",
+  "description": "The Classic Crush Bakery & Café - Made With Love. An Initiative by School of Hotel Management. Order freshly prepared artisanal desserts, quick bites, Korean buns, sandwiches, pastries, and beverages.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
