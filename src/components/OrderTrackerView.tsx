@@ -27,6 +27,18 @@ const PICKUP_STEPS: OrderStatus[] = [
   'Delivered',
 ];
 
+const COLORS = {
+  olive: '#292D1D',
+  deepOlive: '#202318',
+  green: '#244536',
+  gold: '#B9A064',
+  lightGold: '#D4BD85',
+  ivory: '#F4EBDD',
+  cream: '#FFFCF6',
+  border: '#D8CCB7',
+  muted: '#615B4D',
+};
+
 export const OrderTrackerView: React.FC = () => {
   const {
     activeTrackingOrder,
@@ -42,22 +54,28 @@ export const OrderTrackerView: React.FC = () => {
   if (!order) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center">
-        <div className="w-16 h-16 rounded-full bg-stone-100 mx-auto flex items-center justify-center text-stone-400 mb-4">
+        <div
+          className="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4"
+          style={{ backgroundColor: COLORS.ivory, color: COLORS.muted }}
+        >
           <ShoppingBag className="w-8 h-8" />
         </div>
 
-        <h2 className="text-xl font-serif font-bold text-[#2C1810]">
+        <h2
+          className="text-xl font-serif font-bold"
+          style={{ color: COLORS.olive }}
+        >
           No Active Orders Found
         </h2>
 
-        <p className="text-xs text-stone-500 mt-1 max-w-sm mx-auto">
-          You haven't placed an order yet. Select from our delicious bakery
-          menu to get started!
+        <p className="text-xs mt-2 max-w-sm mx-auto" style={{ color: COLORS.muted }}>
+          You haven't placed an order yet. Explore our bakery menu to get started!
         </p>
 
         <button
           onClick={() => setCurrentView('menu')}
-          className="mt-6 px-6 py-2.5 rounded-full bg-[#2C1810] text-[#FAF6F0] text-xs font-bold shadow-md hover:bg-[#3E2319]"
+          className="mt-6 px-6 py-3 rounded-full text-xs font-bold transition-colors hover:opacity-90"
+          style={{ backgroundColor: COLORS.olive, color: COLORS.cream }}
         >
           Explore Menu
         </button>
@@ -71,9 +89,8 @@ export const OrderTrackerView: React.FC = () => {
   const currentStepIndex = steps.indexOf(order.status as OrderStatus);
 
   const handleAdvanceStatus = () => {
-    if (currentStepIndex < steps.length - 1) {
-      const nextStatus = steps[currentStepIndex + 1];
-      updateOrderStatus(order.id, nextStatus);
+    if (currentStepIndex >= 0 && currentStepIndex < steps.length - 1) {
+      updateOrderStatus(order.id, steps[currentStepIndex + 1]);
     }
   };
 
@@ -100,45 +117,58 @@ export const OrderTrackerView: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-12 space-y-8">
       {/* Header */}
-      <div className="pb-7 border-b border-stone-200">
+      <div className="pb-7 border-b" style={{ borderColor: COLORS.border }}>
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#8C5D36]">
-                Live Order Tracking
+              <span
+                className="text-[11px] font-bold uppercase tracking-[0.18em]"
+                style={{ color: COLORS.gold }}
+              >
+                Order Tracking
               </span>
-
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span className="w-2 h-2 rounded-full bg-emerald-600" />
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-serif font-black text-[#2C1810] leading-tight">
+            <h1
+              className="text-3xl sm:text-4xl font-serif font-black leading-tight"
+              style={{ color: COLORS.olive }}
+            >
               Track Your Order
             </h1>
 
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 text-xs sm:text-sm text-stone-500">
+            <div
+              className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 text-xs sm:text-sm"
+              style={{ color: COLORS.muted }}
+            >
               <span>
                 Order ID:{' '}
-                <span className="font-bold text-[#2C1810]">
+                <span className="font-bold" style={{ color: COLORS.olive }}>
                   {orderNumber}
                 </span>
               </span>
 
-              <span className="hidden sm:inline text-stone-300">•</span>
-
-              <span>
-                {formattedDate} · {formattedTime}
-              </span>
+              <span className="hidden sm:inline">•</span>
+              <span>{formattedDate} · {formattedTime}</span>
             </div>
           </div>
 
           {orders.length > 1 && (
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-stone-500">View order:</span>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <label htmlFor="tracking-order" style={{ color: COLORS.muted }}>
+                View order:
+              </label>
 
               <select
+                id="tracking-order"
                 value={order.id}
                 onChange={(e) => setActiveTrackingOrderId(e.target.value)}
-                className="px-3 py-2 rounded-xl border border-stone-300 bg-white font-semibold text-stone-800 outline-none"
+                className="max-w-full px-3 py-2 rounded-xl border font-semibold outline-none"
+                style={{
+                  borderColor: COLORS.border,
+                  backgroundColor: COLORS.cream,
+                  color: COLORS.olive,
+                }}
               >
                 {orders.map((o) => (
                   <option key={o.id} value={o.id}>
@@ -152,10 +182,24 @@ export const OrderTrackerView: React.FC = () => {
       </div>
 
       {/* Main Status Card */}
-      <div className="bg-gradient-to-br from-[#2C1810] to-[#3E2319] rounded-3xl p-6 sm:p-8 text-[#FAF6F0] shadow-xl relative overflow-hidden">
+      <div
+        className="rounded-3xl p-6 sm:p-8 shadow-lg relative overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${COLORS.olive}, ${COLORS.green})`,
+          color: COLORS.cream,
+        }}
+      >
+        <div
+          className="absolute -top-20 -right-16 w-56 h-56 rounded-full border opacity-10 pointer-events-none"
+          style={{ borderColor: COLORS.lightGold, borderWidth: '28px' }}
+        />
+
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <span className="inline-block px-3 py-1 rounded-full bg-[#E5B869] text-[#2C1810] font-bold text-xs">
+          <div className="space-y-3">
+            <span
+              className="inline-block px-3 py-1.5 rounded-full font-bold text-xs"
+              style={{ backgroundColor: COLORS.lightGold, color: COLORS.olive }}
+            >
               Status: {order.status}
             </span>
 
@@ -167,49 +211,68 @@ export const OrderTrackerView: React.FC = () => {
                 : order.status === 'Ready for Pickup'
                 ? 'Order Ready for Pickup at Counter! 🛍️'
                 : order.status === 'Being Prepared'
-                ? 'Chefs are baking & preparing with love 👨‍🍳'
-                : 'Order Confirmed & Queued! ✨'}
+                ? 'Our team is preparing your order with care 👨‍🍳'
+                : 'Your Order Is in the Queue'}
             </h2>
 
-            <p className="text-xs text-[#FAF6F0]/80">
-              Estimated completion in approx{' '}
-              <span className="font-bold text-[#E5B869]">
+            <p className="text-xs" style={{ color: COLORS.ivory }}>
+              Estimated completion:{' '}
+              <span className="font-bold" style={{ color: COLORS.lightGold }}>
                 {order.estimatedDeliveryTime}
               </span>
             </p>
           </div>
 
-          {/* Test Pipeline */}
-          <div className="shrink-0 bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/20 text-center space-y-2">
-            <span className="text-[11px] font-bold text-[#E5B869] block">
-              Test Pipeline Demo:
+          {/* Demo Status Controls */}
+          <div
+            className="shrink-0 p-4 rounded-2xl border text-center space-y-3"
+            style={{
+              backgroundColor: 'rgba(255,252,246,0.08)',
+              borderColor: 'rgba(255,252,246,0.2)',
+            }}
+          >
+            <span
+              className="text-[11px] font-bold block"
+              style={{ color: COLORS.lightGold }}
+            >
+              Demo Status Controls
             </span>
 
             <button
               onClick={handleAdvanceStatus}
-              disabled={currentStepIndex >= steps.length - 1}
-              className="px-4 py-2 bg-[#E5B869] hover:bg-[#D4AF37] disabled:bg-stone-600 disabled:opacity-50 text-[#2C1810] rounded-xl text-xs font-bold shadow-md cursor-pointer"
+              disabled={currentStepIndex < 0 || currentStepIndex >= steps.length - 1}
+              className="px-4 py-3 rounded-xl text-xs font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: COLORS.lightGold,
+                color: COLORS.olive,
+              }}
             >
               Advance to Next Status →
             </button>
 
-            <p className="text-[10px] text-[#FAF6F0]/60">
-              (Admin updates reflect here in real-time)
+            <p className="text-[10px]" style={{ color: COLORS.ivory }}>
+              Demo control for testing order progress.
             </p>
           </div>
         </div>
       </div>
 
       {/* Progress */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-xs space-y-6">
-        <h3 className="text-base font-serif font-bold text-[#2C1810]">
+      <div
+        className="rounded-3xl p-6 sm:p-8 border space-y-6"
+        style={{
+          backgroundColor: COLORS.cream,
+          borderColor: COLORS.border,
+        }}
+      >
+        <h3 className="text-base font-serif font-bold" style={{ color: COLORS.olive }}>
           Preparation & Delivery Progress
         </h3>
 
-        {/* Desktop */}
-        <div className="hidden sm:grid sm:grid-cols-5 gap-2 relative">
+        {/* Desktop Progress */}
+        <div className="hidden sm:grid sm:grid-cols-5 gap-2">
           {steps.map((st, idx) => {
-            const isCompleted = idx <= currentStepIndex;
+            const isCompleted = currentStepIndex >= 0 && idx <= currentStepIndex;
             const isCurrent = idx === currentStepIndex;
 
             return (
@@ -218,29 +281,39 @@ export const OrderTrackerView: React.FC = () => {
                 className="flex flex-col items-center text-center relative z-10"
               >
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs ${
+                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition-colors"
+                  style={
                     isCurrent
-                      ? 'bg-[#2C1810] text-[#E5B869] ring-4 ring-[#D4AF37]/30 shadow-md'
+                      ? {
+                          backgroundColor: COLORS.olive,
+                          color: COLORS.lightGold,
+                          boxShadow: `0 0 0 4px ${COLORS.ivory}`,
+                        }
                       : isCompleted
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'bg-stone-100 text-stone-400 border border-stone-200'
-                  }`}
+                      ? { backgroundColor: COLORS.green, color: '#FFFFFF' }
+                      : {
+                          backgroundColor: COLORS.ivory,
+                          color: COLORS.muted,
+                          border: `1px solid ${COLORS.border}`,
+                        }
+                  }
                 >
                   {isCompleted ? (
-                    <CheckCircle2 className="w-5 h-5 stroke-[2.5]" />
+                    <CheckCircle2 className="w-5 h-5" />
                   ) : (
                     idx + 1
                   )}
                 </div>
 
                 <span
-                  className={`text-xs font-bold mt-2.5 ${
-                    isCurrent
-                      ? 'text-[#2C1810]'
+                  className="text-xs font-bold mt-2.5"
+                  style={{
+                    color: isCurrent
+                      ? COLORS.olive
                       : isCompleted
-                      ? 'text-emerald-800'
-                      : 'text-stone-400'
-                  }`}
+                      ? COLORS.green
+                      : COLORS.muted,
+                  }}
                 >
                   {st}
                 </span>
@@ -249,22 +322,27 @@ export const OrderTrackerView: React.FC = () => {
           })}
         </div>
 
-        {/* Mobile */}
+        {/* Mobile Progress */}
         <div className="sm:hidden space-y-4">
           {steps.map((st, idx) => {
-            const isCompleted = idx <= currentStepIndex;
+            const isCompleted = currentStepIndex >= 0 && idx <= currentStepIndex;
             const isCurrent = idx === currentStepIndex;
 
             return (
               <div key={st} className="flex items-center gap-3">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                  className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0"
+                  style={
                     isCurrent
-                      ? 'bg-[#2C1810] text-[#E5B869] ring-2 ring-[#D4AF37]'
+                      ? {
+                          backgroundColor: COLORS.olive,
+                          color: COLORS.lightGold,
+                          boxShadow: `0 0 0 2px ${COLORS.lightGold}`,
+                        }
                       : isCompleted
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-stone-100 text-stone-400'
-                  }`}
+                      ? { backgroundColor: COLORS.green, color: '#FFFFFF' }
+                      : { backgroundColor: COLORS.ivory, color: COLORS.muted }
+                  }
                 >
                   {isCompleted ? (
                     <CheckCircle2 className="w-4 h-4" />
@@ -273,50 +351,62 @@ export const OrderTrackerView: React.FC = () => {
                   )}
                 </div>
 
-                <div className="flex-1">
-                  <span
-                    className={`text-xs font-bold block ${
-                      isCurrent
-                        ? 'text-[#2C1810]'
-                        : isCompleted
-                        ? 'text-emerald-800'
-                        : 'text-stone-400'
-                    }`}
-                  >
-                    {st}
-                  </span>
-                </div>
+                <span
+                  className="text-xs font-bold"
+                  style={{
+                    color: isCurrent
+                      ? COLORS.olive
+                      : isCompleted
+                      ? COLORS.green
+                      : COLORS.muted,
+                  }}
+                >
+                  {st}
+                </span>
               </div>
             );
           })}
         </div>
 
         {/* Activity History */}
-        <div className="pt-4 border-t border-stone-100 space-y-3">
-          <h4 className="text-xs font-bold text-stone-700 uppercase tracking-wider">
+        <div className="pt-4 border-t space-y-3" style={{ borderColor: COLORS.border }}>
+          <h4
+            className="text-xs font-bold uppercase tracking-wider"
+            style={{ color: COLORS.muted }}
+          >
             Activity History
           </h4>
 
           <div className="space-y-2.5">
             {order.timeline.map((event, i) => (
               <div
-                key={i}
-                className="flex items-start gap-3 p-3 rounded-xl bg-stone-50 border border-stone-200 text-xs"
+                key={`${event.status}-${i}`}
+                className="flex items-start gap-3 p-3 rounded-xl border text-xs"
+                style={{
+                  backgroundColor: COLORS.ivory,
+                  borderColor: COLORS.border,
+                }}
               >
-                <div className="w-2 h-2 rounded-full bg-[#8C5D36] mt-1.5 shrink-0" />
+                <div
+                  className="w-2 h-2 rounded-full mt-1.5 shrink-0"
+                  style={{ backgroundColor: COLORS.gold }}
+                />
 
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="font-bold text-stone-800">
+                    <span className="font-bold" style={{ color: COLORS.olive }}>
                       {event.status}
                     </span>
 
-                    <span className="text-[11px] text-stone-400 font-mono">
+                    <span
+                      className="text-[11px] font-mono shrink-0"
+                      style={{ color: COLORS.muted }}
+                    >
                       {event.timestamp}
                     </span>
                   </div>
 
-                  <p className="text-stone-600 text-[11px] mt-0.5">
+                  <p className="text-[11px] mt-1" style={{ color: COLORS.muted }}>
                     {event.description}
                   </p>
                 </div>
@@ -326,34 +416,50 @@ export const OrderTrackerView: React.FC = () => {
         </div>
       </div>
 
-      {/* Delivery + Order */}
+      {/* Delivery + Order Details */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Left */}
+        {/* Left Column */}
         <div className="md:col-span-5 space-y-4">
           {order.orderType === 'delivery' &&
             order.assignedDeliveryPartner && (
-              <div className="bg-white rounded-3xl p-5 border border-stone-200 shadow-xs space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-stone-700 uppercase tracking-wider">
+              <div
+                className="rounded-3xl p-5 border space-y-4"
+                style={{
+                  backgroundColor: COLORS.cream,
+                  borderColor: COLORS.border,
+                }}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span
+                    className="text-xs font-bold uppercase tracking-wider"
+                    style={{ color: COLORS.muted }}
+                  >
                     Delivery Partner
                   </span>
 
-                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md text-[10px] font-bold">
+                  <span className="px-2 py-1 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800">
                     Assigned
                   </span>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-[#FAF6F0] border border-[#E8DFC8] flex items-center justify-center text-[#2C1810]">
-                    <Truck className="w-6 h-6 text-[#8C5D36]" />
+                  <div
+                    className="w-12 h-12 rounded-2xl border flex items-center justify-center"
+                    style={{
+                      backgroundColor: COLORS.ivory,
+                      borderColor: COLORS.border,
+                      color: COLORS.green,
+                    }}
+                  >
+                    <Truck className="w-6 h-6" />
                   </div>
 
-                  <div>
-                    <h4 className="font-bold text-sm text-[#2C1810]">
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-sm" style={{ color: COLORS.olive }}>
                       {order.assignedDeliveryPartner.name}
                     </h4>
 
-                    <p className="text-xs text-stone-500">
+                    <p className="text-xs mt-1" style={{ color: COLORS.muted }}>
                       {order.assignedDeliveryPartner.vehicle}
                     </p>
                   </div>
@@ -361,7 +467,12 @@ export const OrderTrackerView: React.FC = () => {
 
                 <a
                   href={`tel:${order.assignedDeliveryPartner.phone}`}
-                  className="w-full py-2.5 rounded-xl bg-[#FAF6F0] hover:bg-[#2C1810] text-[#2C1810] hover:text-[#FAF6F0] border border-[#2C1810]/30 font-bold text-xs flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-xl border font-bold text-xs flex items-center justify-center gap-2 transition-colors hover:opacity-80"
+                  style={{
+                    backgroundColor: COLORS.ivory,
+                    color: COLORS.olive,
+                    borderColor: COLORS.border,
+                  }}
                 >
                   <Phone className="w-4 h-4" />
                   <span>Call Delivery Partner</span>
@@ -370,45 +481,66 @@ export const OrderTrackerView: React.FC = () => {
             )}
 
           {/* Address */}
-          <div className="bg-white rounded-3xl p-5 border border-stone-200 shadow-xs space-y-3">
-            <span className="text-xs font-bold text-stone-700 uppercase tracking-wider block">
+          <div
+            className="rounded-3xl p-5 border space-y-3"
+            style={{
+              backgroundColor: COLORS.cream,
+              borderColor: COLORS.border,
+            }}
+          >
+            <span
+              className="text-xs font-bold uppercase tracking-wider block"
+              style={{ color: COLORS.muted }}
+            >
               {order.orderType === 'pickup'
                 ? 'Pickup Location'
                 : 'Delivery Destination'}
             </span>
 
             {order.orderType === 'pickup' ? (
-              <div className="flex items-start gap-2.5 text-xs text-stone-700">
-                <Store className="w-4 h-4 text-[#8C5D36] shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2.5 text-xs">
+                <Store
+                  className="w-4 h-4 shrink-0 mt-0.5"
+                  style={{ color: COLORS.green }}
+                />
 
                 <div>
-                  <p className="font-bold text-[#2C1810]">
+                  <p className="font-bold" style={{ color: COLORS.olive }}>
                     The Classic Crush Bakery Counter
                   </p>
 
-                  <p className="text-stone-500 mt-0.5">
+                  <p className="mt-1" style={{ color: COLORS.muted }}>
                     School of Hotel Management Complex, North Wing Main Campus.
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="flex items-start gap-2.5 text-xs text-stone-700">
-                <MapPin className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2.5 text-xs">
+                <MapPin
+                  className="w-4 h-4 shrink-0 mt-0.5"
+                  style={{ color: COLORS.green }}
+                />
 
-                <div>
-                  <p className="font-bold text-[#2C1810]">
+                <div className="min-w-0">
+                  <p className="font-bold" style={{ color: COLORS.olive }}>
                     {order.deliveryAddress?.houseFlat},{' '}
                     {order.deliveryAddress?.street}
                   </p>
 
-                  <p className="text-stone-500 mt-0.5">
+                  <p className="mt-1" style={{ color: COLORS.muted }}>
                     {order.deliveryAddress?.area},{' '}
                     {order.deliveryAddress?.city} -{' '}
                     {order.deliveryAddress?.pincode}
                   </p>
 
                   {order.deliveryAddress?.deliveryInstructions && (
-                    <p className="text-[11px] text-amber-800 italic mt-1 bg-amber-50 p-1.5 rounded">
+                    <p
+                      className="text-[11px] italic mt-2 p-2 rounded-lg"
+                      style={{
+                        color: COLORS.olive,
+                        backgroundColor: COLORS.ivory,
+                      }}
+                    >
                       Note: {order.deliveryAddress.deliveryInstructions}
                     </p>
                   )}
@@ -418,16 +550,26 @@ export const OrderTrackerView: React.FC = () => {
           </div>
         </div>
 
-        {/* Right */}
-        <div className="md:col-span-7 bg-white rounded-3xl p-5 sm:p-6 border border-stone-200 shadow-xs space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-stone-100">
-            <h4 className="font-serif font-bold text-base text-[#2C1810]">
+        {/* Right Column */}
+        <div
+          className="md:col-span-7 rounded-3xl p-5 sm:p-6 border space-y-4"
+          style={{
+            backgroundColor: COLORS.cream,
+            borderColor: COLORS.border,
+          }}
+        >
+          <div
+            className="flex items-center justify-between gap-3 pb-3 border-b"
+            style={{ borderColor: COLORS.border }}
+          >
+            <h4 className="font-serif font-bold text-base" style={{ color: COLORS.olive }}>
               Ordered Items ({order.items.length})
             </h4>
 
             <button
               onClick={() => reorder(order)}
-              className="text-xs font-bold text-[#8C5D36] hover:text-[#2C1810] flex items-center gap-1"
+              className="text-xs font-bold flex items-center gap-1.5 transition-opacity hover:opacity-70"
+              style={{ color: COLORS.green }}
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Reorder All</span>
@@ -436,11 +578,11 @@ export const OrderTrackerView: React.FC = () => {
 
           <div className="space-y-3">
             {order.items.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center gap-3 text-xs"
-              >
-                <div className="w-12 h-12 rounded-xl bg-stone-100 overflow-hidden shrink-0">
+              <div key={item.id} className="flex items-center gap-3 text-xs">
+                <div
+                  className="w-12 h-12 rounded-xl overflow-hidden shrink-0"
+                  style={{ backgroundColor: COLORS.ivory }}
+                >
                   <img
                     src={item.product.image}
                     alt={item.product.name}
@@ -449,16 +591,16 @@ export const OrderTrackerView: React.FC = () => {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-[#2C1810] truncate">
+                  <p className="font-bold truncate" style={{ color: COLORS.olive }}>
                     {item.product.name}
                   </p>
 
-                  <p className="text-[11px] text-stone-500">
+                  <p className="text-[11px] mt-1" style={{ color: COLORS.muted }}>
                     Qty: {item.quantity}
                   </p>
                 </div>
 
-                <span className="font-black text-stone-900">
+                <span className="font-black shrink-0" style={{ color: COLORS.olive }}>
                   ₹{item.totalPrice}
                 </span>
               </div>
@@ -466,40 +608,42 @@ export const OrderTrackerView: React.FC = () => {
           </div>
 
           {/* Bill */}
-          <div className="pt-3 border-t border-stone-100 text-xs space-y-1.5 text-stone-600">
-            <div className="flex justify-between">
+          <div
+            className="pt-3 border-t text-xs space-y-2"
+            style={{ borderColor: COLORS.border, color: COLORS.muted }}
+          >
+            <div className="flex justify-between gap-3">
               <span>Item Subtotal</span>
-              <span className="font-bold text-stone-900">
+              <span className="font-bold" style={{ color: COLORS.olive }}>
                 ₹{order.subtotal}
               </span>
             </div>
 
             {order.discount > 0 && (
-              <div className="flex justify-between text-emerald-700 font-semibold">
+              <div className="flex justify-between gap-3 text-emerald-700 font-semibold">
                 <span>Discount ({order.couponCode})</span>
                 <span>-₹{order.discount}</span>
               </div>
             )}
 
-            <div className="flex justify-between">
+            <div className="flex justify-between gap-3">
               <span>Delivery Charges</span>
-
-              <span className="font-bold text-stone-900">
-                {order.deliveryFee === 0
-                  ? 'FREE'
-                  : `₹${order.deliveryFee}`}
+              <span className="font-bold" style={{ color: COLORS.olive }}>
+                {order.deliveryFee === 0 ? 'FREE' : `₹${order.deliveryFee}`}
               </span>
             </div>
 
-            <div className="flex justify-between">
+            <div className="flex justify-between gap-3">
               <span>Taxes (5% GST)</span>
-
-              <span className="font-bold text-stone-900">
+              <span className="font-bold" style={{ color: COLORS.olive }}>
                 ₹{order.taxes}
               </span>
             </div>
 
-            <div className="pt-2 border-t border-stone-200 flex justify-between text-base font-black text-[#2C1810]">
+            <div
+              className="pt-3 border-t flex justify-between gap-3 text-base font-black"
+              style={{ borderColor: COLORS.border, color: COLORS.olive }}
+            >
               <span>Grand Total</span>
               <span>₹{order.grandTotal}</span>
             </div>

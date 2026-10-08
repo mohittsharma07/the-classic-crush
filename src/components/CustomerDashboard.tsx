@@ -10,6 +10,21 @@ import {
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
+const C = {
+  olive: '#292D1D',
+  deepOlive: '#202318',
+  green: '#244536',
+  gold: '#B9A064',
+  lightGold: '#D4BD85',
+  ivory: '#F4EBDD',
+  cream: '#FFFCF6',
+  border: '#D8CCB7',
+  muted: '#615B4D',
+};
+
+const inputClass =
+  'w-full px-3 py-2.5 border rounded-xl outline-none transition-colors focus:ring-2 focus:ring-[#B9A064]/20 text-xs';
+
 export const CustomerDashboard: React.FC = () => {
   const {
     deliveryAddress,
@@ -33,17 +48,56 @@ export const CustomerDashboard: React.FC = () => {
     favorites.includes(p.id)
   );
 
+  const tabClass = (tab: typeof activeTab) =>
+    `shrink-0 px-3 sm:px-4 py-3 text-xs font-bold flex items-center gap-2 border-b-2 transition-colors ${
+      activeTab === tab
+        ? 'border-[#B9A064] text-[#292D1D]'
+        : 'border-transparent text-[#615B4D] hover:text-[#292D1D]'
+    }`;
+
+  const fieldClass = `${inputClass} border-[#D8CCB7] bg-[#FFFCF6] text-[#292D1D] placeholder:text-[#817969]`;
+
+  const saveAddress = () => {
+    showToast('Address Saved', 'Default address updated.', 'success');
+  };
+
+  const saveProfile = () => {
+    showToast(
+      'Profile Updated',
+      'Customer details saved successfully.',
+      'success'
+    );
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-12 space-y-8">
       {/* Profile Header */}
-      <div className="bg-gradient-to-r from-[#2C1810] to-[#4A2E20] rounded-3xl p-6 sm:p-8 text-[#FAF6F0] shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-6 border border-[#3E2319]">
-        <div className="flex items-center gap-4 min-w-0">
-          <div className="w-16 h-16 rounded-2xl bg-[#E5B869] text-[#2C1810] flex items-center justify-center font-serif font-black text-2xl shadow-lg border-2 border-white/20 shrink-0">
-            {deliveryAddress.fullName.charAt(0) || 'C'}
+      <div
+        className="relative overflow-hidden rounded-3xl p-6 sm:p-8 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-6 border"
+        style={{
+          background: `linear-gradient(120deg, ${C.olive}, ${C.green})`,
+          color: C.cream,
+          borderColor: C.gold,
+        }}
+      >
+        <div
+          className="absolute -right-12 -top-16 w-48 h-48 rounded-full border-[24px] opacity-10 pointer-events-none"
+          style={{ borderColor: C.lightGold }}
+        />
+
+        <div className="relative flex items-center gap-4 min-w-0">
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center font-serif font-black text-2xl shadow-lg border-2 border-white/20 shrink-0"
+            style={{ backgroundColor: C.lightGold, color: C.olive }}
+          >
+            {deliveryAddress.fullName?.trim().charAt(0).toUpperCase() || 'C'}
           </div>
 
           <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-[#E5B869] font-bold mb-1">
+            <p
+              className="text-[11px] uppercase tracking-[0.18em] font-bold mb-1"
+              style={{ color: C.lightGold }}
+            >
               My Account
             </p>
 
@@ -51,15 +105,15 @@ export const CustomerDashboard: React.FC = () => {
               {deliveryAddress.fullName || 'Valued Guest'}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#FAF6F0]/75 mt-2">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs mt-2 text-[#F4EBDD]/85">
               <span className="flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5 text-[#E5B869]" />
+                <Phone className="w-3.5 h-3.5" style={{ color: C.lightGold }} />
                 {deliveryAddress.phoneNumber || 'Phone not added'}
               </span>
 
               {deliveryAddress.email && (
                 <span className="flex items-center gap-1.5 break-all">
-                  <Mail className="w-3.5 h-3.5 text-[#E5B869]" />
+                  <Mail className="w-3.5 h-3.5 shrink-0" style={{ color: C.lightGold }} />
                   {deliveryAddress.email}
                 </span>
               )}
@@ -67,29 +121,25 @@ export const CustomerDashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="hidden sm:flex items-center">
-          <div className="text-right">
-            <p className="text-[10px] uppercase tracking-widest text-[#FAF6F0]/50">
-              Member Since
-            </p>
-
-            <p className="text-sm font-semibold text-[#E5B869] mt-1">
-              Welcome to TCC
-            </p>
-          </div>
+        <div className="relative hidden sm:block text-right">
+          <p className="text-[10px] uppercase tracking-widest text-white/60">
+            Member Since
+          </p>
+          <p className="text-sm font-semibold mt-1" style={{ color: C.lightGold }}>
+            Welcome to TCC
+          </p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-stone-200 gap-1 overflow-x-auto no-scrollbar">
+      <div
+        className="flex border-b gap-1 overflow-x-auto"
+        style={{ borderColor: C.border }}
+      >
         <button
           type="button"
           onClick={() => setActiveTab('orders')}
-          className={`shrink-0 pb-3 px-3 sm:px-4 text-xs font-bold flex items-center gap-2 border-b-2 ${
-            activeTab === 'orders'
-              ? 'border-[#2C1810] text-[#2C1810]'
-              : 'border-transparent text-stone-500 hover:text-stone-800'
-          }`}
+          className={tabClass('orders')}
         >
           <ShoppingBag className="w-4 h-4" />
           <span>My Orders ({orders.length})</span>
@@ -98,24 +148,16 @@ export const CustomerDashboard: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('favorites')}
-          className={`shrink-0 pb-3 px-3 sm:px-4 text-xs font-bold flex items-center gap-2 border-b-2 ${
-            activeTab === 'favorites'
-              ? 'border-[#2C1810] text-[#2C1810]'
-              : 'border-transparent text-stone-500 hover:text-stone-800'
-          }`}
+          className={tabClass('favorites')}
         >
           <Heart className="w-4 h-4" />
-          <span>Saved Favorites ({favoriteProducts.length})</span>
+          <span>Favorites ({favoriteProducts.length})</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('address')}
-          className={`shrink-0 pb-3 px-3 sm:px-4 text-xs font-bold flex items-center gap-2 border-b-2 ${
-            activeTab === 'address'
-              ? 'border-[#2C1810] text-[#2C1810]'
-              : 'border-transparent text-stone-500 hover:text-stone-800'
-          }`}
+          className={tabClass('address')}
         >
           <MapPin className="w-4 h-4" />
           <span>Saved Address</span>
@@ -124,11 +166,7 @@ export const CustomerDashboard: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('profile')}
-          className={`shrink-0 pb-3 px-3 sm:px-4 text-xs font-bold flex items-center gap-2 border-b-2 ${
-            activeTab === 'profile'
-              ? 'border-[#2C1810] text-[#2C1810]'
-              : 'border-transparent text-stone-500 hover:text-stone-800'
-          }`}
+          className={tabClass('profile')}
         >
           <User className="w-4 h-4" />
           <span>Profile Settings</span>
@@ -139,21 +177,28 @@ export const CustomerDashboard: React.FC = () => {
       {activeTab === 'orders' && (
         <div className="space-y-4">
           {orders.length === 0 ? (
-            <div className="bg-white rounded-3xl p-10 text-center border border-stone-200">
-              <ShoppingBag className="w-10 h-10 text-stone-300 mx-auto mb-2" />
+            <div
+              className="rounded-3xl p-10 text-center border"
+              style={{ backgroundColor: C.cream, borderColor: C.border }}
+            >
+              <ShoppingBag
+                className="w-10 h-10 mx-auto mb-3"
+                style={{ color: C.gold }}
+              />
 
-              <h3 className="font-serif font-bold text-base text-[#2C1810]">
+              <h3 className="font-serif font-bold text-base" style={{ color: C.olive }}>
                 No orders placed yet
               </h3>
 
-              <p className="text-xs text-stone-500 mt-1">
-                Explore our bakery & cafe menu to order freshly baked goods!
+              <p className="text-xs mt-2" style={{ color: C.muted }}>
+                Explore our bakery and cafe menu to discover your favourites.
               </p>
 
               <button
                 type="button"
                 onClick={() => setCurrentView('menu')}
-                className="mt-4 px-6 py-2.5 rounded-full bg-[#2C1810] text-[#FAF6F0] font-bold text-xs hover:bg-[#3E2319]"
+                className="mt-5 px-6 py-3 rounded-full font-bold text-xs transition-colors hover:opacity-90"
+                style={{ backgroundColor: C.olive, color: C.cream }}
               >
                 Browse Menu
               </button>
@@ -162,15 +207,22 @@ export const CustomerDashboard: React.FC = () => {
             orders.map((order) => (
               <div
                 key={order.id}
-                className="bg-white rounded-2xl p-5 border border-stone-200 shadow-2xs space-y-4 hover:border-stone-300"
+                className="rounded-2xl p-5 border shadow-sm space-y-4 transition-colors hover:border-[#B9A064]"
+                style={{ backgroundColor: C.cream, borderColor: C.border }}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-100">
-                  <div>
-                    <span className="font-mono text-xs font-bold text-[#2C1810] bg-stone-100 px-2 py-0.5 rounded">
+                <div
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b"
+                  style={{ borderColor: C.border }}
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className="font-mono text-xs font-bold px-2.5 py-1 rounded"
+                      style={{ backgroundColor: C.ivory, color: C.olive }}
+                    >
                       Order {order.id.replace(/^CC-\d{4}-/, '')}
                     </span>
 
-                    <span className="text-xs text-stone-500 ml-2">
+                    <span className="text-xs" style={{ color: C.muted }}>
                       {new Date(order.createdAt).toLocaleDateString()} at{' '}
                       {new Date(order.createdAt).toLocaleTimeString([], {
                         hour: '2-digit',
@@ -180,61 +232,59 @@ export const CustomerDashboard: React.FC = () => {
                   </div>
 
                   <span
-                    className={`text-xs font-bold px-2.5 py-0.5 rounded-full w-fit ${
+                    className="text-xs font-bold px-3 py-1 rounded-full w-fit"
+                    style={
                       order.status === 'Delivered'
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-amber-100 text-amber-900'
-                    }`}
+                        ? { backgroundColor: '#E2EFE4', color: '#285C37' }
+                        : { backgroundColor: C.ivory, color: C.green }
+                    }
                   >
                     {order.status}
                   </span>
                 </div>
 
-                <div className="space-y-2 text-xs">
+                <div className="space-y-3 text-xs">
                   {order.items.map((item) => (
                     <div
                       key={item.id}
-                      className="flex justify-between items-center gap-3 text-stone-800"
+                      className="flex justify-between items-center gap-3"
+                      style={{ color: C.olive }}
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="font-bold text-[#8C5D36] shrink-0">
-                          x{item.quantity}
+                        <span className="font-bold shrink-0" style={{ color: C.green }}>
+                          ×{item.quantity}
                         </span>
-
-                        <span className="truncate">
-                          {item.product.name}
-                        </span>
+                        <span className="truncate">{item.product.name}</span>
                       </div>
 
-                      <span className="font-bold shrink-0">
-                        ₹{item.totalPrice}
-                      </span>
+                      <span className="font-bold shrink-0">₹{item.totalPrice}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-3 border-t border-stone-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                  <div>
-                    <span className="text-stone-500">Total: </span>
-
-                    <span className="font-black text-sm text-[#2C1810]">
+                <div
+                  className="pt-3 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                  style={{ borderColor: C.border }}
+                >
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span style={{ color: C.muted }}>Total:</span>
+                    <span className="font-black text-sm" style={{ color: C.olive }}>
                       ₹{order.grandTotal}
                     </span>
-
-                    <span className="text-stone-400 ml-1">
-                      ({order.paymentMethod.toUpperCase()} •{' '}
-                      {order.paymentStatus})
+                    <span className="text-[10px]" style={{ color: C.muted }}>
+                      ({order.paymentMethod.toUpperCase()} · {order.paymentStatus})
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
                       onClick={() => {
                         setActiveTrackingOrderId(order.id);
                         setCurrentView('track');
                       }}
-                      className="px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold"
+                      className="px-4 py-2.5 rounded-xl font-bold transition-colors hover:opacity-80"
+                      style={{ backgroundColor: C.ivory, color: C.olive }}
                     >
                       Track Order
                     </button>
@@ -242,7 +292,8 @@ export const CustomerDashboard: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => reorder(order)}
-                      className="px-4 py-2 rounded-xl bg-[#2C1810] hover:bg-[#3E2319] text-[#FAF6F0] font-bold flex items-center gap-1.5 shadow-xs"
+                      className="px-4 py-2.5 rounded-xl font-bold flex items-center gap-1.5 transition-colors hover:opacity-90"
+                      style={{ backgroundColor: C.olive, color: C.cream }}
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       <span>Reorder</span>
@@ -259,23 +310,35 @@ export const CustomerDashboard: React.FC = () => {
       {activeTab === 'favorites' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {favoriteProducts.length === 0 ? (
-            <div className="col-span-full bg-white rounded-3xl p-10 text-center border border-stone-200">
-              <Heart className="w-10 h-10 text-stone-300 mx-auto mb-2" />
+            <div
+              className="col-span-full rounded-3xl p-10 text-center border"
+              style={{ backgroundColor: C.cream, borderColor: C.border }}
+            >
+              <Heart className="w-10 h-10 mx-auto mb-3" style={{ color: C.gold }} />
 
-              <h3 className="font-serif font-bold text-base text-[#2C1810]">
+              <h3 className="font-serif font-bold text-base" style={{ color: C.olive }}>
                 No favorites saved
               </h3>
 
-              <p className="text-xs text-stone-500 mt-1">
-                Tap the heart icon on any dessert or quick bite to save it
-                here!
+              <p className="text-xs mt-2" style={{ color: C.muted }}>
+                Tap the heart icon on a product to save it here.
               </p>
+
+              <button
+                type="button"
+                onClick={() => setCurrentView('menu')}
+                className="mt-5 px-5 py-2.5 rounded-full text-xs font-bold"
+                style={{ backgroundColor: C.olive, color: C.cream }}
+              >
+                Explore Menu
+              </button>
             </div>
           ) : (
             favoriteProducts.map((p) => (
               <div
                 key={p.id}
-                className="bg-white rounded-2xl p-4 border border-stone-200 shadow-2xs flex items-center justify-between gap-3"
+                className="rounded-2xl p-4 border flex items-center justify-between gap-3"
+                style={{ backgroundColor: C.cream, borderColor: C.border }}
               >
                 <img
                   src={p.image}
@@ -284,19 +347,20 @@ export const CustomerDashboard: React.FC = () => {
                 />
 
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-sm text-[#2C1810] truncate">
+                  <h4 className="font-bold text-sm truncate" style={{ color: C.olive }}>
                     {p.name}
                   </h4>
 
-                  <span className="font-black text-xs text-[#2C1810]">
+                  <span className="font-black text-xs" style={{ color: C.green }}>
                     ₹{p.price}
                   </span>
 
-                  <div className="mt-1 flex items-center gap-2">
+                  <div className="mt-2 flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => addToCart(p, 1)}
-                      className="px-2.5 py-1 bg-[#2C1810] hover:bg-[#3E2319] text-[#FAF6F0] rounded-lg text-[11px] font-bold"
+                      className="px-3 py-2 rounded-lg text-[11px] font-bold transition-colors hover:opacity-90"
+                      style={{ backgroundColor: C.olive, color: C.cream }}
                     >
                       Add to Cart
                     </button>
@@ -304,10 +368,11 @@ export const CustomerDashboard: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => toggleFavorite(p.id)}
-                      className="p-1 text-rose-500 hover:text-rose-700"
+                      className="p-2 rounded-lg transition-colors hover:bg-[#F4EBDD]"
+                      style={{ color: '#A33D32' }}
                       aria-label={`Remove ${p.name} from favorites`}
                     >
-                      <Heart className="w-4 h-4 fill-rose-500" />
+                      <Heart className="w-4 h-4 fill-current" />
                     </button>
                   </div>
                 </div>
@@ -319,99 +384,93 @@ export const CustomerDashboard: React.FC = () => {
 
       {/* ADDRESS */}
       {activeTab === 'address' && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 max-w-xl space-y-4">
-          <h3 className="font-serif font-bold text-lg text-[#2C1810]">
-            Primary Delivery Address
-          </h3>
+        <div
+          className="rounded-3xl p-6 sm:p-8 border max-w-xl space-y-5"
+          style={{ backgroundColor: C.cream, borderColor: C.border }}
+        >
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.18em] font-bold" style={{ color: C.gold }}>
+              Delivery Details
+            </p>
+            <h3 className="font-serif font-bold text-lg mt-1" style={{ color: C.olive }}>
+              Primary Delivery Address
+            </h3>
+          </div>
 
-          <div className="space-y-3 text-xs">
+          <div className="space-y-4 text-xs">
             <div>
-              <label className="block font-bold text-stone-700 mb-1">
+              <label htmlFor="address-house" className="block font-bold mb-1.5" style={{ color: C.olive }}>
                 House / Flat / Hostel Room
               </label>
-
               <input
+                id="address-house"
                 type="text"
                 value={deliveryAddress.houseFlat}
-                onChange={(e) =>
-                  updateAddressField('houseFlat', e.target.value)
-                }
-                className="w-full px-3 py-2 border border-stone-300 rounded-xl outline-none focus:border-[#8C5D36]"
+                onChange={(e) => updateAddressField('houseFlat', e.target.value)}
+                className={fieldClass}
               />
             </div>
 
             <div>
-              <label className="block font-bold text-stone-700 mb-1">
+              <label htmlFor="address-street" className="block font-bold mb-1.5" style={{ color: C.olive }}>
                 Street / Building
               </label>
-
               <input
+                id="address-street"
                 type="text"
                 value={deliveryAddress.street}
-                onChange={(e) =>
-                  updateAddressField('street', e.target.value)
-                }
-                className="w-full px-3 py-2 border border-stone-300 rounded-xl outline-none focus:border-[#8C5D36]"
+                onChange={(e) => updateAddressField('street', e.target.value)}
+                className={fieldClass}
               />
             </div>
 
             <div>
-              <label className="block font-bold text-stone-700 mb-1">
+              <label htmlFor="address-area" className="block font-bold mb-1.5" style={{ color: C.olive }}>
                 Area / Sector
               </label>
-
               <input
+                id="address-area"
                 type="text"
                 value={deliveryAddress.area}
-                onChange={(e) =>
-                  updateAddressField('area', e.target.value)
-                }
-                className="w-full px-3 py-2 border border-stone-300 rounded-xl outline-none focus:border-[#8C5D36]"
+                onChange={(e) => updateAddressField('area', e.target.value)}
+                className={fieldClass}
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block font-bold text-stone-700 mb-1">
+                <label htmlFor="address-city" className="block font-bold mb-1.5" style={{ color: C.olive }}>
                   City
                 </label>
-
                 <input
+                  id="address-city"
                   type="text"
                   value={deliveryAddress.city}
-                  onChange={(e) =>
-                    updateAddressField('city', e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-stone-300 rounded-xl outline-none focus:border-[#8C5D36]"
+                  onChange={(e) => updateAddressField('city', e.target.value)}
+                  className={fieldClass}
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-stone-700 mb-1">
+                <label htmlFor="address-pincode" className="block font-bold mb-1.5" style={{ color: C.olive }}>
                   Pincode
                 </label>
-
                 <input
+                  id="address-pincode"
                   type="text"
+                  inputMode="numeric"
                   value={deliveryAddress.pincode}
-                  onChange={(e) =>
-                    updateAddressField('pincode', e.target.value)
-                  }
-                  className="w-full px-3 py-2 border border-stone-300 rounded-xl outline-none focus:border-[#8C5D36]"
+                  onChange={(e) => updateAddressField('pincode', e.target.value)}
+                  className={fieldClass}
                 />
               </div>
             </div>
 
             <button
               type="button"
-              onClick={() =>
-                showToast(
-                  'Address Saved',
-                  'Default address updated.',
-                  'success'
-                )
-              }
-              className="px-6 py-2.5 rounded-full bg-[#2C1810] hover:bg-[#3E2319] text-[#FAF6F0] font-bold text-xs uppercase"
+              onClick={saveAddress}
+              className="px-6 py-3 rounded-full font-bold text-xs uppercase tracking-wide transition-colors hover:opacity-90"
+              style={{ backgroundColor: C.olive, color: C.cream }}
             >
               Save Address
             </button>
@@ -421,67 +480,64 @@ export const CustomerDashboard: React.FC = () => {
 
       {/* PROFILE */}
       {activeTab === 'profile' && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 max-w-xl space-y-4">
-          <h3 className="font-serif font-bold text-lg text-[#2C1810]">
-            Customer Details
-          </h3>
+        <div
+          className="rounded-3xl p-6 sm:p-8 border max-w-xl space-y-5"
+          style={{ backgroundColor: C.cream, borderColor: C.border }}
+        >
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.18em] font-bold" style={{ color: C.gold }}>
+              Personal Information
+            </p>
+            <h3 className="font-serif font-bold text-lg mt-1" style={{ color: C.olive }}>
+              Customer Details
+            </h3>
+          </div>
 
-          <div className="space-y-3 text-xs">
+          <div className="space-y-4 text-xs">
             <div>
-              <label className="block font-bold text-stone-700 mb-1">
+              <label htmlFor="profile-name" className="block font-bold mb-1.5" style={{ color: C.olive }}>
                 Full Name
               </label>
-
               <input
+                id="profile-name"
                 type="text"
                 value={deliveryAddress.fullName}
-                onChange={(e) =>
-                  updateAddressField('fullName', e.target.value)
-                }
-                className="w-full px-3 py-2 border border-stone-300 rounded-xl outline-none focus:border-[#8C5D36]"
+                onChange={(e) => updateAddressField('fullName', e.target.value)}
+                className={fieldClass}
               />
             </div>
 
             <div>
-              <label className="block font-bold text-stone-700 mb-1">
+              <label htmlFor="profile-phone" className="block font-bold mb-1.5" style={{ color: C.olive }}>
                 Mobile Number
               </label>
-
               <input
+                id="profile-phone"
                 type="tel"
                 value={deliveryAddress.phoneNumber}
-                onChange={(e) =>
-                  updateAddressField('phoneNumber', e.target.value)
-                }
-                className="w-full px-3 py-2 border border-stone-300 rounded-xl outline-none focus:border-[#8C5D36]"
+                onChange={(e) => updateAddressField('phoneNumber', e.target.value)}
+                className={fieldClass}
               />
             </div>
 
             <div>
-              <label className="block font-bold text-stone-700 mb-1">
+              <label htmlFor="profile-email" className="block font-bold mb-1.5" style={{ color: C.olive }}>
                 Email Address
               </label>
-
               <input
+                id="profile-email"
                 type="email"
                 value={deliveryAddress.email || ''}
-                onChange={(e) =>
-                  updateAddressField('email', e.target.value)
-                }
-                className="w-full px-3 py-2 border border-stone-300 rounded-xl outline-none focus:border-[#8C5D36]"
+                onChange={(e) => updateAddressField('email', e.target.value)}
+                className={fieldClass}
               />
             </div>
 
             <button
               type="button"
-              onClick={() =>
-                showToast(
-                  'Profile Updated',
-                  'Customer details saved successfully.',
-                  'success'
-                )
-              }
-              className="px-6 py-2.5 rounded-full bg-[#2C1810] hover:bg-[#3E2319] text-[#FAF6F0] font-bold text-xs uppercase"
+              onClick={saveProfile}
+              className="px-6 py-3 rounded-full font-bold text-xs uppercase tracking-wide transition-colors hover:opacity-90"
+              style={{ backgroundColor: C.olive, color: C.cream }}
             >
               Save Profile
             </button>

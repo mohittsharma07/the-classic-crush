@@ -11,15 +11,14 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import { CategoryId } from '../types';
 
 export const Footer: React.FC = () => {
-  const {
-    setCurrentView,
-    setSelectedCategory,
-    isAdmin,
-  } = useStore();
+  const { setCurrentView, setSelectedCategory } = useStore();
 
-  const goTo = (view: Parameters<typeof setCurrentView>[0]) => {
+  const goTo = (
+    view: Parameters<typeof setCurrentView>[0]
+  ) => {
     setCurrentView(view);
     window.scrollTo({
       top: 0,
@@ -27,9 +26,7 @@ export const Footer: React.FC = () => {
     });
   };
 
-  const goToCategory = (
-    category: Parameters<typeof setSelectedCategory>[0]
-  ) => {
+  const goToCategory = (category: CategoryId) => {
     setSelectedCategory(category);
     setCurrentView('menu');
     window.scrollTo({
@@ -38,50 +35,71 @@ export const Footer: React.FC = () => {
     });
   };
 
+  const menuLinks: { label: string; category: CategoryId }[] = [
+    { label: 'Signature Desserts', category: 'signature-desserts' },
+    { label: 'Quick Bites', category: 'quick-bites' },
+    { label: 'Sandwiches & Maggie', category: 'sandwiches-maggie' },
+    { label: 'Beverages & Pastries', category: 'beverages-small-eats' },
+    { label: 'Burgers & Fries', category: 'burgers' },
+    { label: 'Momos', category: 'momos' },
+  ];
+
+  const exploreLinks: {
+    label: string;
+    view: Parameters<typeof setCurrentView>[0];
+  }[] = [
+    { label: 'Home', view: 'home' },
+    { label: 'Full Menu', view: 'menu' },
+    { label: 'Track Order', view: 'track' },
+    { label: 'About Us', view: 'about' },
+    { label: 'Contact', view: 'contact' },
+    { label: 'Staff & Admin', view: 'admin' },
+  ];
+
   return (
-    <footer className="relative overflow-hidden border-t border-[#4A3024] bg-[#25150F] pb-24 pt-14 text-[#F8F1E9] sm:pb-10 sm:pt-16">
-      {/* Subtle background details */}
-      <div className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-[#D9A441]/[0.05] blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-[#8C5D36]/[0.06] blur-3xl" />
+    <footer className="relative overflow-hidden border-t border-[#B9A064]/35 bg-[#202318] pb-24 pt-14 text-[#F4EBDD] sm:pb-10 sm:pt-16">
+      {/* Subtle brand details */}
+      <div className="pointer-events-none absolute right-0 top-0 h-px w-1/2 bg-gradient-to-l from-[#B9A064]/50 to-transparent" />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Main footer */}
-        <div className="grid gap-10 border-b border-white/10 pb-10 md:grid-cols-2 lg:grid-cols-12 lg:gap-12">
+        <div className="grid gap-10 border-b border-[#F4EBDD]/15 pb-10 md:grid-cols-2 lg:grid-cols-12 lg:gap-12">
           {/* Brand */}
           <div className="lg:col-span-5">
             <button
               type="button"
               onClick={() => goTo('home')}
               className="group flex items-center gap-3 text-left"
+              aria-label="The Classic Crush home"
             >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#B98A5B]/40 bg-[#362017] text-[#D9A441] transition-transform duration-300 group-hover:scale-105">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#B9A064]/65 bg-[#292D1D] text-[#D4BD85] transition-colors group-hover:bg-[#244536]">
                 <Coffee className="h-5 w-5" />
               </span>
 
               <span>
-                <span className="block font-serif text-xl font-bold tracking-[0.08em] text-white">
+                <span className="block font-serif text-xl font-bold tracking-[0.06em] text-[#FFFCF6]">
                   THE CLASSIC CRUSH
                 </span>
 
-                <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-[0.18em] text-[#D9A441]">
+                <span className="mt-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-[#D4BD85]">
                   Bakery & Café
                 </span>
               </span>
             </button>
 
-            <p className="mt-5 max-w-md text-sm leading-6 text-white/60">
+            <p className="mt-5 max-w-md text-sm leading-7 text-[#F4EBDD]/70">
               Freshly baked treats, café favourites and handcrafted
-              desserts made with care. An initiative by the School of
-              Hotel Management.
+              desserts, made with care. An initiative by the School
+              of Hotel Management.
             </p>
 
-            <div className="mt-6 flex flex-wrap items-center gap-3">
+            <div className="mt-6 flex items-center gap-3">
               <a
                 href="https://instagram.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/65 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#B98A5B]/50 hover:bg-[#3A241A] hover:text-[#E5B869]"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[#B9A064]/35 bg-[#292D1D] text-[#D4BD85] transition-colors hover:border-[#D4BD85] hover:bg-[#244536]"
               >
                 <Instagram className="h-4 w-4" />
               </a>
@@ -91,40 +109,35 @@ export const Footer: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="WhatsApp"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/65 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-500/40 hover:bg-emerald-600 hover:text-white"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[#B9A064]/35 bg-[#292D1D] text-[#D4BD85] transition-colors hover:border-[#D4BD85] hover:bg-[#244536]"
               >
                 <MessageCircle className="h-4 w-4" />
               </a>
             </div>
 
-            <div className="mt-7 flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.14em] text-white/35">
-              <span className="h-px w-8 bg-[#B98A5B]/50" />
-              Made with love
+            <div className="mt-7 flex items-center gap-3 text-xs italic text-[#D4BD85]">
+              <span className="h-px w-8 bg-[#B9A064]/70" />
+              <span className="font-serif text-base">Made With Love</span>
+              <span className="h-px w-8 bg-[#B9A064]/70" />
             </div>
           </div>
 
-          {/* Menu */}
+          {/* Menu links */}
           <div className="lg:col-span-2">
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#D9A441]">
-              Menu
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#D4BD85]">
+              Our Menu
             </h4>
 
-            <ul className="mt-4 space-y-3">
-              {[
-                ['Signature Desserts', 'signature-desserts'],
-                ['Quick Bites', 'quick-bites'],
-                ['Sandwiches & Maggie', 'sandwiches-maggie'],
-                ['Beverages & Pastries', 'beverages-small-eats'],
-                ['Momos', 'momos'],
-              ].map(([label, category]) => (
-                <li key={category}>
+            <ul className="mt-5 space-y-3">
+              {menuLinks.map((item) => (
+                <li key={item.category}>
                   <button
                     type="button"
-                    onClick={() => goToCategory(category as any)}
-                    className="group flex items-center gap-1.5 text-left text-xs text-white/60 transition-colors hover:text-white"
+                    onClick={() => goToCategory(item.category)}
+                    className="group flex items-center gap-1.5 text-left text-xs leading-5 text-[#F4EBDD]/70 transition-colors hover:text-[#D4BD85]"
                   >
-                    <span>{label}</span>
-                    <ArrowUpRight className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-70" />
+                    <span>{item.label}</span>
+                    <ArrowUpRight className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
                   </button>
                 </li>
               ))}
@@ -133,151 +146,95 @@ export const Footer: React.FC = () => {
 
           {/* Explore */}
           <div className="lg:col-span-2">
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#D9A441]">
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#D4BD85]">
               Explore
             </h4>
 
-            <ul className="mt-4 space-y-3">
-              <li>
-                <button
-                  type="button"
-                  onClick={() => goTo('home')}
-                  className="text-xs text-white/60 transition-colors hover:text-white"
-                >
-                  Home
-                </button>
-              </li>
-
-              <li>
-                <button
-                  type="button"
-                  onClick={() => goTo('menu')}
-                  className="text-xs text-white/60 transition-colors hover:text-white"
-                >
-                  Full Menu
-                </button>
-              </li>
-
-              <li>
-                <button
-                  type="button"
-                  onClick={() => goTo('track')}
-                  className="text-xs text-white/60 transition-colors hover:text-white"
-                >
-                  Track Order
-                </button>
-              </li>
-
-              <li>
-                <button
-                  type="button"
-                  onClick={() => goTo('about')}
-                  className="text-xs text-white/60 transition-colors hover:text-white"
-                >
-                  About Us
-                </button>
-              </li>
-
-              <li>
-                <button
-                  type="button"
-                  onClick={() => goTo('contact')}
-                  className="text-xs text-white/60 transition-colors hover:text-white"
-                >
-                  Contact
-                </button>
-              </li>
-
-              <li>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (isAdmin) {
-                      goTo('admin');
-                    } else {
-                      goTo('admin');
-                    }
-                  }}
-                  className="flex items-center gap-1.5 text-xs text-white/40 transition-colors hover:text-[#E5B869]"
-                >
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  Staff & Admin
-                </button>
-              </li>
+            <ul className="mt-5 space-y-3">
+              {exploreLinks.map((item) => (
+                <li key={item.label}>
+                  <button
+                    type="button"
+                    onClick={() => goTo(item.view)}
+                    className="flex items-center gap-1.5 text-left text-xs text-[#F4EBDD]/70 transition-colors hover:text-[#D4BD85]"
+                  >
+                    {item.label}
+                    {item.label === 'Staff & Admin' && (
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
 
           {/* Visit */}
           <div className="lg:col-span-3">
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#D9A441]">
+            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#D4BD85]">
               Visit Us
             </h4>
 
-            <div className="mt-4 space-y-4">
+            <div className="mt-5 space-y-5">
               <div className="flex items-start gap-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#362017] text-[#D9A441]">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#B9A064]/30 bg-[#292D1D] text-[#D4BD85]">
                   <MapPin className="h-4 w-4" />
                 </span>
 
                 <div>
-                  <p className="text-xs font-semibold text-white">
+                  <p className="text-xs font-semibold text-[#FFFCF6]">
                     Bakery Counter
                   </p>
-                  <p className="mt-1 text-xs leading-5 text-white/55">
-                    Hotel Management Complex,
+                  <p className="mt-1 text-xs leading-5 text-[#F4EBDD]/65">
+                    School of Hotel Management,
                     <br />
-                    North Wing Campus,
-                    <br />
-                    University Boulevard.
+                    CSJMU Campus, Kanpur.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#362017] text-[#D9A441]">
+              <div className="flex items-start gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#B9A064]/30 bg-[#292D1D] text-[#D4BD85]">
                   <Clock className="h-4 w-4" />
                 </span>
 
                 <div>
-                  <p className="text-xs font-semibold text-white">
+                  <p className="text-xs font-semibold text-[#FFFCF6]">
                     Opening Hours
                   </p>
-                  <p className="mt-1 text-xs text-white/55">
-                    10:00 AM – 11:00 PM
+                  <p className="mt-1 text-xs leading-5 text-[#F4EBDD]/65">
+                    Please check with the café for current timings.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#362017] text-[#D9A441]">
+              <div className="flex items-start gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#B9A064]/30 bg-[#292D1D] text-[#D4BD85]">
                   <Phone className="h-4 w-4" />
                 </span>
 
                 <div>
-                  <p className="text-xs font-semibold text-white">
+                  <p className="text-xs font-semibold text-[#FFFCF6]">
                     Call Us
                   </p>
-                  <a
-                    href="tel:+919876543210"
-                    className="mt-1 block text-xs text-white/55 transition-colors hover:text-[#E5B869]"
-                  >
-                    +91 98765 43210
-                  </a>
+                  <p className="mt-1 text-xs leading-5 text-[#F4EBDD]/65">
+                    Contact details to be confirmed.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom */}
-        <div className="flex flex-col gap-4 pt-7 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
-          <p className="text-[10px] leading-5 text-white/35 sm:text-xs">
-            © 2026 The Classic Crush Bakery & Café. All rights reserved.
+        {/* Bottom bar */}
+        <div className="flex flex-col gap-3 pt-7 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
+          <p className="text-[10px] leading-5 text-[#F4EBDD]/55 sm:text-xs">
+            © {new Date().getFullYear()} The Classic Crush Bakery & Café.
+            All rights reserved.
           </p>
 
-          <div className="flex items-center justify-center gap-1.5 text-[10px] text-white/40 sm:text-xs">
+          <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#F4EBDD]/65 sm:text-xs">
             <span>Crafted with</span>
-            <Heart className="h-3.5 w-3.5 fill-[#B64532] text-[#B64532]" />
+            <Heart className="h-3.5 w-3.5 fill-[#B9A064] text-[#B9A064]" />
             <span>by School of Hotel Management</span>
           </div>
         </div>

@@ -47,36 +47,32 @@ export const CheckoutModal: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod>('upi');
-
-  const [isProcessingPayment, setIsProcessingPayment] =
-    useState(false);
-
-  const [upiIdInput, setUpiIdInput] = useState('');
-  const [cardHolder, setCardHolder] = useState('');
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-  const [cardCvv, setCardCvv] = useState('');
-  const [selectedBank, setSelectedBank] = useState('HDFC Bank');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [locatingState, setLocatingState] = useState(false);
 
   if (!isCheckoutOpen) return null;
 
   const isStep1Valid =
     deliveryAddress.fullName.trim().length >= 2 &&
-    deliveryAddress.phoneNumber.trim().length >= 10;
+    deliveryAddress.phoneNumber.replace(/\D/g, '').length === 10;
 
   const isStep2Valid =
     orderType === 'pickup' ||
-    (deliveryAddress.houseFlat.trim().length > 0 &&
+    (
+      deliveryAddress.houseFlat.trim().length > 0 &&
       deliveryAddress.street.trim().length > 0 &&
       deliveryAddress.area.trim().length > 0 &&
-      !isOutOfDeliveryRadius);
+      !isOutOfDeliveryRadius
+    );
+
+  const inputClass =
+    'h-11 w-full rounded-xl border border-[#D8CCB7] bg-[#FFFCF6] px-3 text-sm text-[#292D1D] outline-none transition-colors placeholder:text-[#817969] focus:border-[#B9A064] focus:ring-2 focus:ring-[#B9A064]/20';
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
       showToast(
-        'Geolocation Unsupported',
-        'Your browser does not support GPS location.',
+        'Location Unavailable',
+        'Your browser does not support location detection.',
         'error'
       );
       return;
@@ -88,52 +84,55 @@ export const CheckoutModal: React.FC = () => {
       (position) => {
         setLocatingState(false);
 
-        const simulatedDistance = Number(
-          (1.2 + Math.random() * 2.5).toFixed(1)
-        );
-
         setDeliveryAddress((previous) => ({
           ...previous,
-          distanceKm: simulatedDistance,
-          area: 'Campus Central Enclave (GPS Detected)',
-          landmark: 'Identified via GPS',
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         }));
 
         showToast(
-          'Location Detected',
-          `GPS location captured: approx ${simulatedDistance} km from The Classic Crush bakery.`,
+          'Location Captured',
+          'GPS coordinates captured. Please confirm your delivery address and service availability.',
           'success'
         );
       },
       () => {
         setLocatingState(false);
 
-        const simulatedDistance = 2.1;
-
-        setDeliveryAddress((previous) => ({
-          ...previous,
-          distanceKm: simulatedDistance,
-        }));
-
         showToast(
-          'GPS Permission Prompted',
-          'Using approximate campus distance (2.1 km).',
-          'info'
+          'Location Not Available',
+          'Allow location access or enter your delivery address manually.',
+          'error'
         );
       },
-      { timeout: 7000 }
+      { enableHighAccuracy: false, timeout: 10000 }
     );
   };
 
   const handleCompleteOrder = async () => {
+    if (!cart.length) {
+      showToast('Cart Empty', 'Add items before placing your order.', 'error');
+      return;
+    }
+
+    if (!isStep1Valid || !isStep2Valid) {
+      showToast(
+        'Check Your Details',
+        'Please complete the required contact and delivery details.',
+        'error'
+      );
+      return;
+    }
+
     setIsProcessingPayment(true);
 
     try {
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1200)
-      );
+      /*
+       * Demo checkout:
+       * Connect a verified payment gateway before accepting real online
+       * payments. This flow does not independently verify a payment.
+       */
+      await new Promise((resolve) => setTimeout(resolve, 600));
 
       const status: PaymentStatus =
         paymentMethod === 'cash_on_delivery' ||
@@ -144,8 +143,8 @@ export const CheckoutModal: React.FC = () => {
       await placeOrder(paymentMethod, status);
     } catch {
       showToast(
-        'Payment Issue',
-        'Could not complete order. Please try again.',
+        'Order Issue',
+        'Could not complete the order. Please try again.',
         'error'
       );
     } finally {
@@ -159,32 +158,42 @@ export const CheckoutModal: React.FC = () => {
     { number: 3, label: 'Payment' },
   ];
 
-  const inputClass =
-    'h-11 w-full rounded-xl border border-[#DED4CA] bg-white px-3 text-xs text-[#2C1810] outline-none transition-colors placeholder:text-[#A0948A] focus:border-[#B98A5B] focus:ring-4 focus:ring-[#B98A5B]/10';
+  const paymentOptions = [
+    { id: 'upi' as PaymentMethod, label: 'UPI', icon: QrCode },
+    { id: 'card' as PaymentMethod, label: 'Card', icon: CreditCard },
+    { id: 'netbanking' as PaymentMethod, label: 'Net Banking', icon: Store },
+    {
+      id: (
+        orderType === 'pickup'
+          ? 'pay_at_cafe'
+          : 'cash_on_delivery'
+      ) as PaymentMethod,
+      label: orderType === 'pickup' ? 'Pay at Café' : 'Cash on Delivery',
+      icon: DollarSign,
+    },
+  ];
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-[#160B07]/75 p-2 backdrop-blur-md sm:p-5">
-      <div className="relative my-auto flex max-h-[96vh] w-full max-w-4xl flex-col overflow-hidden rounded-[26px] border border-[#E2D6CA] bg-[#FBF8F3] shadow-[0_30px_100px_rgba(28,16,11,0.32)]">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center overflow-y-auto bg-[#11140D]/75 p-2 backdrop-blur-sm sm:p-5">
+      <div className="relative my-auto flex max-h-[96vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl border border-[#B9A064]/40 bg-[#F4EBDD] shadow-2xl">
 
         {/* Header */}
-        <div className="shrink-0 bg-[#2C1810] px-4 py-4 text-white sm:px-6 sm:py-5">
-          <div className="flex items-center justify-between gap-4">
+        <header className="shrink-0 bg-[#292D1D] px-4 py-4 text-[#FFFCF6] sm:px-6">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-[#43271C] text-[#D9A441]">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#B9A064]/50 bg-[#202318] text-[#D4BD85]">
                 <Store className="h-5 w-5" />
               </div>
 
               <div className="min-w-0">
-                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#D9A441]">
+                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#D4BD85]">
                   The Classic Crush
                 </p>
-
-                <h2 className="mt-0.5 truncate font-serif text-xl font-bold sm:text-2xl">
+                <h2 className="font-serif text-xl font-bold sm:text-2xl">
                   Complete Your Order
                 </h2>
-
-                <p className="mt-0.5 truncate text-[10px] text-white/50 sm:text-xs">
-                  Bakery & Café · Freshly prepared with care
+                <p className="mt-0.5 text-[10px] text-[#E0D5BD] sm:text-xs">
+                  Bakery & Café · Made with love
                 </p>
               </div>
             </div>
@@ -192,16 +201,16 @@ export const CheckoutModal: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsCheckoutOpen(false)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#F4EBDD] hover:bg-white/10 hover:text-[#D4BD85]"
               aria-label="Close checkout"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* Progress */}
-        <div className="shrink-0 border-b border-[#E7DED4] bg-white px-4 py-3.5 sm:px-7">
+        {/* Step progress */}
+        <div className="shrink-0 border-b border-[#D8CCB7] bg-[#FFFCF6] px-4 py-3 sm:px-7">
           <div className="mx-auto flex max-w-2xl items-center">
             {steps.map((step, index) => {
               const isActive = currentStep === step.number;
@@ -210,9 +219,7 @@ export const CheckoutModal: React.FC = () => {
               const canOpen =
                 step.number === 1 ||
                 (step.number === 2 && isStep1Valid) ||
-                (step.number === 3 &&
-                  isStep1Valid &&
-                  isStep2Valid);
+                (step.number === 3 && isStep1Valid && isStep2Valid);
 
               return (
                 <React.Fragment key={step.number}>
@@ -221,36 +228,25 @@ export const CheckoutModal: React.FC = () => {
                     disabled={!canOpen}
                     onClick={() => {
                       if (canOpen) {
-                        setCurrentStep(
-                          step.number as 1 | 2 | 3
-                        );
+                        setCurrentStep(step.number as 1 | 2 | 3);
                       }
                     }}
                     className={`flex shrink-0 items-center gap-2 ${
-                      canOpen
-                        ? 'cursor-pointer'
-                        : 'cursor-not-allowed opacity-35'
+                      canOpen ? 'cursor-pointer' : 'cursor-not-allowed opacity-40'
                     }`}
                   >
                     <span
-                      className={`flex h-8 w-8 items-center justify-center rounded-full text-[10px] font-bold ${
+                      className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
                         isActive || isComplete
-                          ? 'bg-[#2C1810] text-[#E5B869] shadow-sm'
-                          : 'bg-[#EEE8E1] text-[#8B7D73]'
+                          ? 'bg-[#292D1D] text-[#D4BD85]'
+                          : 'bg-[#EAE0CE] text-[#615B4D]'
                       }`}
                     >
-                      {isComplete ? (
-                        <CheckCircle2 className="h-4 w-4" />
-                      ) : (
-                        step.number
-                      )}
+                      {isComplete ? <CheckCircle2 className="h-4 w-4" /> : step.number}
                     </span>
-
                     <span
-                      className={`hidden text-[10px] font-bold sm:block ${
-                        isActive
-                          ? 'text-[#2C1810]'
-                          : 'text-[#8A7C72]'
+                      className={`hidden text-xs font-bold sm:block ${
+                        isActive ? 'text-[#292D1D]' : 'text-[#817969]'
                       }`}
                     >
                       {step.label}
@@ -259,10 +255,10 @@ export const CheckoutModal: React.FC = () => {
 
                   {index < steps.length - 1 && (
                     <div
-                      className={`mx-2 h-px flex-1 sm:mx-4 ${
+                      className={`mx-3 h-px flex-1 sm:mx-5 ${
                         currentStep > step.number
-                          ? 'bg-[#B98A5B]'
-                          : 'bg-[#E2D9D1]'
+                          ? 'bg-[#B9A064]'
+                          : 'bg-[#D8CCB7]'
                       }`}
                     />
                   )}
@@ -272,69 +268,58 @@ export const CheckoutModal: React.FC = () => {
           </div>
         </div>
 
-        {/* Body */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-7 sm:py-7">
+        {/* Main content */}
+        <main className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-7 sm:py-7">
 
-          {/* STEP 1 */}
+          {/* STEP 1 — Contact details */}
           {currentStep === 1 && (
-            <div className="mx-auto max-w-2xl">
-              <div className="mb-7">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9A6B45]">
-                  Step 01 · Your details
-                </p>
+            <section className="mx-auto max-w-2xl">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8C7446]">
+                Step 01 · Your details
+              </p>
+              <h3 className="mt-1 font-serif text-2xl font-bold text-[#292D1D] sm:text-3xl">
+                Contact Information
+              </h3>
+              <p className="mt-2 text-sm text-[#615B4D]">
+                Enter your details so the café can identify your order.
+              </p>
 
-                <div className="mt-1 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-                  <h3 className="font-serif text-2xl font-bold text-[#2C1810] sm:text-3xl">
-                    Contact Information
-                  </h3>
-
-                  <span className="text-[10px] text-[#8A7C72]">
-                    Used for order updates
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-[#51443C]">
-                    Full Name <span className="text-[#B64532]">*</span>
+                  <label htmlFor="checkout-name" className="mb-1.5 block text-xs font-semibold text-[#292D1D]">
+                    Full Name *
                   </label>
-
                   <div className="relative">
-                    <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9B8D83]" />
-
+                    <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8C7446]" />
                     <input
+                      id="checkout-name"
+                      autoComplete="name"
                       type="text"
                       placeholder="Your full name"
                       value={deliveryAddress.fullName}
-                      onChange={(event) =>
-                        updateAddressField(
-                          'fullName',
-                          event.target.value
-                        )
-                      }
+                      onChange={(event) => updateAddressField('fullName', event.target.value)}
                       className={`${inputClass} pl-10`}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-[#51443C]">
-                    Mobile Number{' '}
-                    <span className="text-[#B64532]">*</span>
+                  <label htmlFor="checkout-phone" className="mb-1.5 block text-xs font-semibold text-[#292D1D]">
+                    Mobile Number *
                   </label>
-
                   <div className="relative">
-                    <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9B8D83]" />
-
+                    <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8C7446]" />
                     <input
+                      id="checkout-phone"
+                      autoComplete="tel"
                       type="tel"
-                      placeholder="10 digit mobile number"
+                      inputMode="numeric"
+                      placeholder="10-digit mobile number"
                       value={deliveryAddress.phoneNumber}
                       onChange={(event) =>
                         updateAddressField(
                           'phoneNumber',
-                          event.target.value
+                          event.target.value.replace(/[^\d+\s-]/g, '')
                         )
                       }
                       className={`${inputClass} pl-10`}
@@ -343,39 +328,29 @@ export const CheckoutModal: React.FC = () => {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="mb-1.5 block text-xs font-semibold text-[#51443C]">
-                    Email Address{' '}
-                    <span className="font-normal text-[#9A8C82]">
-                      (Optional)
-                    </span>
+                  <label htmlFor="checkout-email" className="mb-1.5 block text-xs font-semibold text-[#292D1D]">
+                    Email Address <span className="font-normal text-[#817969]">(Optional)</span>
                   </label>
-
                   <div className="relative">
-                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9B8D83]" />
-
+                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8C7446]" />
                     <input
+                      id="checkout-email"
+                      autoComplete="email"
                       type="email"
-                      placeholder="For digital bill & receipt"
+                      placeholder="For your digital receipt"
                       value={deliveryAddress.email || ''}
-                      onChange={(event) =>
-                        updateAddressField(
-                          'email',
-                          event.target.value
-                        )
-                      }
+                      onChange={(event) => updateAddressField('email', event.target.value)}
                       className={`${inputClass} pl-10`}
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="mt-8 rounded-2xl border border-[#E5D9CE] bg-[#F7F0E8] p-4">
+              <div className="mt-6 rounded-2xl border border-[#D8CCB7] bg-[#EAE0CE]/60 p-4">
                 <div className="flex items-start gap-3">
-                  <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#8C5D36]" />
-
-                  <p className="text-[10px] leading-5 text-[#74665D]">
-                    Your contact details are used only to process this
-                    order and keep you updated about its status.
+                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#244536]" />
+                  <p className="text-xs leading-5 text-[#615B4D]">
+                    Provide a reachable number for order updates. Only enter contact details you are comfortable sharing with the café.
                   </p>
                 </div>
               </div>
@@ -385,154 +360,106 @@ export const CheckoutModal: React.FC = () => {
                   type="button"
                   onClick={() => setCurrentStep(2)}
                   disabled={!isStep1Valid}
-                  className="inline-flex h-11 items-center gap-2 rounded-full bg-[#2C1810] px-7 text-xs font-bold uppercase tracking-[0.08em] text-white shadow-[0_8px_22px_rgba(44,24,16,0.14)] transition-colors hover:bg-[#43271C] disabled:cursor-not-allowed disabled:bg-[#D5CEC7] disabled:shadow-none"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#B9A064] bg-[#292D1D] px-7 py-3 text-xs font-bold uppercase tracking-wider text-[#FFFCF6] hover:bg-[#244536] disabled:cursor-not-allowed disabled:border-[#D8CCB7] disabled:bg-[#D8CCB7] disabled:text-[#817969]"
                 >
-                  Continue
-                  <ArrowRight className="h-4 w-4 text-[#D9A441]" />
+                  Continue <ArrowRight className="h-4 w-4 text-[#D4BD85]" />
                 </button>
               </div>
-            </div>
+            </section>
           )}
 
-          {/* STEP 2 */}
+          {/* STEP 2 — Delivery or pickup */}
           {currentStep === 2 && (
-            <div className="mx-auto max-w-2xl">
-              <div className="mb-7">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9A6B45]">
-                  Step 02 · Receiving your order
-                </p>
+            <section className="mx-auto max-w-2xl">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8C7446]">
+                Step 02 · Receiving your order
+              </p>
+              <h3 className="mt-1 font-serif text-2xl font-bold text-[#292D1D] sm:text-3xl">
+                Delivery or Pickup?
+              </h3>
+              <p className="mt-2 text-sm text-[#615B4D]">
+                Choose how you would like to receive your order.
+              </p>
 
-                <h3 className="mt-1 font-serif text-2xl font-bold text-[#2C1810] sm:text-3xl">
-                  Delivery or Pickup?
-                </h3>
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                {[
+                  {
+                    type: 'delivery' as const,
+                    label: 'Home Delivery',
+                    description: 'Have your order brought to your address.',
+                    icon: Truck,
+                  },
+                  {
+                    type: 'pickup' as const,
+                    label: 'Pickup From Café',
+                    description: 'Collect your order from the café.',
+                    icon: Store,
+                  },
+                ].map((option) => {
+                  const Icon = option.icon;
+                  const selected = orderType === option.type;
 
-                <p className="mt-1 text-xs text-[#81746B]">
-                  Choose the most convenient way to receive your food.
-                </p>
-              </div>
-
-              {/* Order Type */}
-              <div className="grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => setOrderType('delivery')}
-                  className={`rounded-2xl border p-4 text-left ${
-                    orderType === 'delivery'
-                      ? 'border-[#2C1810] bg-[#F7EEE5] shadow-[0_8px_24px_rgba(44,24,16,0.08)]'
-                      : 'border-[#E1D8D0] bg-white hover:border-[#CDB8A5] hover:shadow-sm'
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <span
-                      className={`flex h-11 w-11 items-center justify-center rounded-xl ${
-                        orderType === 'delivery'
-                          ? 'bg-[#2C1810] text-[#D9A441]'
-                          : 'bg-[#F2EBE4] text-[#8C5D36]'
+                  return (
+                    <button
+                      type="button"
+                      key={option.type}
+                      onClick={() => setOrderType(option.type)}
+                      className={`rounded-2xl border p-4 text-left transition-colors ${
+                        selected
+                          ? 'border-[#B9A064] bg-[#EAE0CE]/70'
+                          : 'border-[#D8CCB7] bg-[#FFFCF6] hover:border-[#B9A064]'
                       }`}
                     >
-                      <Truck className="h-5 w-5" />
-                    </span>
-
-                    {orderType === 'delivery' && (
-                      <CheckCircle2 className="h-4 w-4 text-[#8C5D36]" />
-                    )}
-                  </div>
-
-                  <h4 className="mt-4 text-sm font-bold text-[#2C1810]">
-                    Home Delivery
-                  </h4>
-
-                  <p className="mt-1 text-[10px] leading-4 text-[#81746B]">
-                    Delivered fresh to your doorstep.
-                  </p>
-
-                  <p className="mt-2 text-[10px] font-semibold text-[#8C5D36]">
-                    Approx. 25–35 mins
-                  </p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setOrderType('pickup')}
-                  className={`rounded-2xl border p-4 text-left ${
-                    orderType === 'pickup'
-                      ? 'border-[#2C1810] bg-[#F7EEE5] shadow-[0_8px_24px_rgba(44,24,16,0.08)]'
-                      : 'border-[#E1D8D0] bg-white hover:border-[#CDB8A5] hover:shadow-sm'
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <span
-                      className={`flex h-11 w-11 items-center justify-center rounded-xl ${
-                        orderType === 'pickup'
-                          ? 'bg-[#2C1810] text-[#D9A441]'
-                          : 'bg-[#F2EBE4] text-[#8C5D36]'
-                      }`}
-                    >
-                      <Store className="h-5 w-5" />
-                    </span>
-
-                    {orderType === 'pickup' && (
-                      <CheckCircle2 className="h-4 w-4 text-[#8C5D36]" />
-                    )}
-                  </div>
-
-                  <h4 className="mt-4 text-sm font-bold text-[#2C1810]">
-                    Pickup From Café
-                  </h4>
-
-                  <p className="mt-1 text-[10px] leading-4 text-[#81746B]">
-                    Collect directly from our café counter.
-                  </p>
-
-                  <p className="mt-2 text-[10px] font-semibold text-emerald-700">
-                    15–20 mins · ₹0 fee
-                  </p>
-                </button>
+                      <div className="flex items-center justify-between">
+                        <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${
+                          selected ? 'bg-[#292D1D] text-[#D4BD85]' : 'bg-[#EAE0CE] text-[#244536]'
+                        }`}>
+                          <Icon className="h-5 w-5" />
+                        </span>
+                        {selected && <CheckCircle2 className="h-5 w-5 text-[#244536]" />}
+                      </div>
+                      <h4 className="mt-4 text-sm font-bold text-[#292D1D]">
+                        {option.label}
+                      </h4>
+                      <p className="mt-1 text-xs leading-5 text-[#615B4D]">
+                        {option.description}
+                      </p>
+                    </button>
+                  );
+                })}
               </div>
 
-              {/* Pickup */}
               {orderType === 'pickup' && (
-                <div className="mt-4 rounded-2xl border border-[#E6D4AF] bg-[#FFF8EA] p-4">
+                <div className="mt-4 rounded-2xl border border-[#B9A064]/50 bg-[#FFFCF6] p-4">
                   <div className="flex items-start gap-3">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F5E6C7] text-[#8C5D36]">
-                      <Store className="h-4 w-4" />
-                    </span>
-
+                    <Store className="mt-0.5 h-5 w-5 shrink-0 text-[#244536]" />
                     <div>
-                      <p className="text-xs font-bold text-[#5D4327]">
-                        Café Pickup Counter
+                      <p className="text-sm font-bold text-[#292D1D]">Café Pickup</p>
+                      <p className="mt-1 text-xs leading-5 text-[#615B4D]">
+                        Check the café's confirmed address and collection instructions before travelling.
                       </p>
-
-                      <p className="mt-1 text-[11px] leading-5 text-[#78654F]">
-                        The Classic Crush Café, School of Hotel
-                        Management Complex, North Wing, Main Campus.
-                      </p>
-
-                      <p className="mt-1 text-[10px] text-[#9A856C]">
-                        Show your order number at the express pickup
-                        window.
+                      <p className="mt-2 text-[10px] text-[#817969]">
+                        Pickup availability and preparation time should be confirmed by the café.
                       </p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Delivery */}
               {orderType === 'delivery' && (
                 <div className="mt-5 space-y-4">
-                  <div className="flex flex-col gap-3 rounded-2xl border border-[#E2D9D1] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#F3E8DC] text-[#8C5D36]">
+                  <div className="flex flex-col gap-3 rounded-2xl border border-[#D8CCB7] bg-[#FFFCF6] p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#EAE0CE] text-[#244536]">
                         <Navigation className="h-4 w-4" />
                       </span>
-
                       <div>
-                        <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#9A6B45]">
-                          Delivery distance
-                        </p>
-
-                        <p className="mt-0.5 text-xs font-semibold text-[#3F332C]">
-                          {deliveryAddress.distanceKm} km from café
+                        <p className="text-xs font-bold text-[#292D1D]">Delivery Location</p>
+                        <p className="mt-1 text-[11px] text-[#615B4D]">
+                          {deliveryAddress.latitude != null &&
+                          deliveryAddress.longitude != null
+                            ? 'GPS coordinates captured'
+                            : 'Enter your address below'}
                         </p>
                       </div>
                     </div>
@@ -541,189 +468,150 @@ export const CheckoutModal: React.FC = () => {
                       type="button"
                       onClick={handleUseCurrentLocation}
                       disabled={locatingState}
-                      className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-[#D9CFC6] bg-[#FBF8F3] px-3 text-[10px] font-bold text-[#4F4037] transition-colors hover:border-[#B98A5B] hover:bg-white disabled:opacity-60"
+                      className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-[#D8CCB7] bg-[#F4EBDD] px-3 text-xs font-bold text-[#292D1D] hover:border-[#B9A064] disabled:opacity-60"
                     >
                       {locatingState ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
-                        <MapPin className="h-3.5 w-3.5 text-[#B64532]" />
+                        <MapPin className="h-4 w-4 text-[#244536]" />
                       )}
-
-                      {locatingState
-                        ? 'Detecting...'
-                        : 'Use Current Location'}
+                      {locatingState ? 'Detecting...' : 'Use Current Location'}
                     </button>
                   </div>
 
                   {isOutOfDeliveryRadius && (
-                    <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
-                      <div className="flex items-start gap-2.5">
-                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
-
+                    <div className="rounded-2xl border border-[#B9A064] bg-[#EAE0CE] p-4">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#8C7446]" />
                         <div>
-                          <p className="text-xs font-bold text-rose-900">
-                            Delivery isn't available here
+                          <p className="text-sm font-bold text-[#292D1D]">
+                            Delivery isn't available at this distance
                           </p>
-
-                          <p className="mt-1 text-[10px] leading-4 text-rose-800/75">
-                            Our delivery radius is currently capped at{' '}
-                            {deliverySettings.maxDeliveryRadiusKm} km
-                            to maintain food quality.
+                          <p className="mt-1 text-xs leading-5 text-[#615B4D]">
+                            The configured delivery radius is {deliverySettings.maxDeliveryRadiusKm} km. If the address is correct, choose pickup instead.
                           </p>
-
                           <button
                             type="button"
                             onClick={() => setOrderType('pickup')}
-                            className="mt-3 rounded-full bg-[#2C1810] px-4 py-2 text-[10px] font-bold text-white transition-colors hover:bg-[#43271C]"
+                            className="mt-3 rounded-full bg-[#292D1D] px-4 py-2 text-xs font-bold text-[#FFFCF6] hover:bg-[#244536]"
                           >
-                            Switch to Café Pickup
+                            Switch to Pickup
                           </button>
                         </div>
                       </div>
                     </div>
                   )}
 
-                  <div className="rounded-2xl border border-[#E3D9D0] bg-white p-4">
-                    <div className="mb-4">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#9A6B45]">
-                        Delivery address
-                      </p>
+                  <div className="rounded-2xl border border-[#D8CCB7] bg-[#FFFCF6] p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#8C7446]">
+                      Delivery Address
+                    </p>
+                    <p className="mt-1 text-xs text-[#615B4D]">
+                      Fields marked * are required.
+                    </p>
 
-                      <p className="mt-1 text-xs text-[#81746B]">
-                        Tell our rider exactly where to bring your order.
-                      </p>
-                    </div>
-
-                    <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
                       <div>
-                        <label className="mb-1.5 block text-[11px] font-semibold text-[#51443C]">
-                          House / Flat / Hostel Room *
+                        <label htmlFor="checkout-house" className="mb-1.5 block text-xs font-semibold text-[#292D1D]">
+                          House / Flat / Room *
                         </label>
-
                         <input
+                          id="checkout-house"
+                          autoComplete="address-line2"
                           type="text"
-                          placeholder="Flat 304, Block B"
+                          placeholder="House, flat or room"
                           value={deliveryAddress.houseFlat}
-                          onChange={(event) =>
-                            updateAddressField(
-                              'houseFlat',
-                              event.target.value
-                            )
-                          }
+                          onChange={(event) => updateAddressField('houseFlat', event.target.value)}
                           className={inputClass}
                         />
                       </div>
 
                       <div>
-                        <label className="mb-1.5 block text-[11px] font-semibold text-[#51443C]">
-                          Street / Building Name *
+                        <label htmlFor="checkout-street" className="mb-1.5 block text-xs font-semibold text-[#292D1D]">
+                          Street / Building *
                         </label>
-
                         <input
+                          id="checkout-street"
+                          autoComplete="address-line1"
                           type="text"
-                          placeholder="Palm Grove Residency"
+                          placeholder="Street or building name"
                           value={deliveryAddress.street}
-                          onChange={(event) =>
-                            updateAddressField(
-                              'street',
-                              event.target.value
-                            )
-                          }
+                          onChange={(event) => updateAddressField('street', event.target.value)}
                           className={inputClass}
                         />
                       </div>
 
                       <div>
-                        <label className="mb-1.5 block text-[11px] font-semibold text-[#51443C]">
-                          Area / Sector *
+                        <label htmlFor="checkout-area" className="mb-1.5 block text-xs font-semibold text-[#292D1D]">
+                          Area / Locality *
                         </label>
-
                         <input
+                          id="checkout-area"
+                          autoComplete="address-level3"
                           type="text"
-                          placeholder="University Campus Road"
+                          placeholder="Area or locality"
                           value={deliveryAddress.area}
-                          onChange={(event) =>
-                            updateAddressField(
-                              'area',
-                              event.target.value
-                            )
-                          }
+                          onChange={(event) => updateAddressField('area', event.target.value)}
                           className={inputClass}
                         />
                       </div>
 
                       <div>
-                        <label className="mb-1.5 block text-[11px] font-semibold text-[#51443C]">
-                          City & Pincode
+                        <label htmlFor="checkout-city" className="mb-1.5 block text-xs font-semibold text-[#292D1D]">
+                          City
                         </label>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <input
-                            type="text"
-                            placeholder="City"
-                            value={deliveryAddress.city}
-                            onChange={(event) =>
-                              updateAddressField(
-                                'city',
-                                event.target.value
-                              )
-                            }
-                            className={inputClass}
-                          />
-
-                          <input
-                            type="text"
-                            placeholder="Pincode"
-                            value={deliveryAddress.pincode}
-                            onChange={(event) =>
-                              updateAddressField(
-                                'pincode',
-                                event.target.value
-                              )
-                            }
-                            className={inputClass}
-                          />
-                        </div>
+                        <input
+                          id="checkout-city"
+                          autoComplete="address-level2"
+                          type="text"
+                          placeholder="City"
+                          value={deliveryAddress.city}
+                          onChange={(event) => updateAddressField('city', event.target.value)}
+                          className={inputClass}
+                        />
                       </div>
 
-                      <div className="sm:col-span-2">
-                        <label className="mb-1.5 block text-[11px] font-semibold text-[#51443C]">
-                          Nearby Landmark{' '}
-                          <span className="font-normal text-[#9A8C82]">
-                            (Optional)
-                          </span>
+                      <div>
+                        <label htmlFor="checkout-pincode" className="mb-1.5 block text-xs font-semibold text-[#292D1D]">
+                          Pincode
                         </label>
-
                         <input
+                          id="checkout-pincode"
+                          autoComplete="postal-code"
+                          inputMode="numeric"
                           type="text"
-                          placeholder="Behind Auditorium / Near North Gate"
+                          placeholder="Pincode"
+                          value={deliveryAddress.pincode}
+                          onChange={(event) => updateAddressField('pincode', event.target.value)}
+                          className={inputClass}
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="checkout-landmark" className="mb-1.5 block text-xs font-semibold text-[#292D1D]">
+                          Nearby Landmark
+                        </label>
+                        <input
+                          id="checkout-landmark"
+                          type="text"
+                          placeholder="Nearby landmark (optional)"
                           value={deliveryAddress.landmark || ''}
-                          onChange={(event) =>
-                            updateAddressField(
-                              'landmark',
-                              event.target.value
-                            )
-                          }
+                          onChange={(event) => updateAddressField('landmark', event.target.value)}
                           className={inputClass}
                         />
                       </div>
 
                       <div className="sm:col-span-2">
-                        <label className="mb-1.5 block text-[11px] font-semibold text-[#51443C]">
-                          Rider Delivery Instructions
+                        <label htmlFor="checkout-instructions" className="mb-1.5 block text-xs font-semibold text-[#292D1D]">
+                          Delivery Instructions
                         </label>
-
                         <input
+                          id="checkout-instructions"
                           type="text"
-                          placeholder="Call upon arrival, leave at reception..."
-                          value={
-                            deliveryAddress.deliveryInstructions || ''
-                          }
+                          placeholder="How can the rider find you?"
+                          value={deliveryAddress.deliveryInstructions || ''}
                           onChange={(event) =>
-                            updateAddressField(
-                              'deliveryInstructions',
-                              event.target.value
-                            )
+                            updateAddressField('deliveryInstructions', event.target.value)
                           }
                           className={inputClass}
                         />
@@ -737,95 +625,57 @@ export const CheckoutModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setCurrentStep(1)}
-                  className="inline-flex h-10 items-center gap-1 rounded-xl px-3 text-xs font-semibold text-[#6F625A] transition-colors hover:bg-[#F0E8DF] hover:text-[#2C1810]"
+                  className="inline-flex min-h-10 items-center gap-1 rounded-xl px-3 text-xs font-semibold text-[#615B4D] hover:bg-[#EAE0CE]"
                 >
-                  <ChevronLeft className="h-4 w-4" />
-                  Back
+                  <ChevronLeft className="h-4 w-4" /> Back
                 </button>
-
                 <button
                   type="button"
                   onClick={() => setCurrentStep(3)}
                   disabled={!isStep2Valid}
-                  className="inline-flex h-11 items-center gap-2 rounded-full bg-[#2C1810] px-7 text-xs font-bold uppercase tracking-[0.08em] text-white shadow-[0_8px_22px_rgba(44,24,16,0.14)] transition-colors hover:bg-[#43271C] disabled:cursor-not-allowed disabled:bg-[#D5CEC7] disabled:shadow-none"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#B9A064] bg-[#292D1D] px-7 py-3 text-xs font-bold uppercase tracking-wider text-[#FFFCF6] hover:bg-[#244536] disabled:cursor-not-allowed disabled:border-[#D8CCB7] disabled:bg-[#D8CCB7] disabled:text-[#817969]"
                 >
-                  Payment
-                  <ArrowRight className="h-4 w-4 text-[#D9A441]" />
+                  Continue to Payment <ArrowRight className="h-4 w-4 text-[#D4BD85]" />
                 </button>
               </div>
-            </div>
+            </section>
           )}
 
-          {/* STEP 3 */}
+          {/* STEP 3 — Payment */}
           {currentStep === 3 && (
-            <div className="mx-auto max-w-2xl">
-              <div className="mb-7 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9A6B45]">
-                    Step 03 · Final confirmation
-                  </p>
+            <section className="mx-auto max-w-2xl">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8C7446]">
+                Step 03 · Final step
+              </p>
+              <h3 className="mt-1 font-serif text-2xl font-bold text-[#292D1D] sm:text-3xl">
+                Payment & Order Summary
+              </h3>
 
-                  <h3 className="mt-1 font-serif text-2xl font-bold text-[#2C1810] sm:text-3xl">
-                    Payment & Review
-                  </h3>
-                </div>
-
-                <div className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-700">
-                  <ShieldCheck className="h-4 w-4" />
-                  Secure checkout
-                </div>
+              <div className="mt-3 flex items-start gap-2 rounded-xl border border-[#B9A064]/50 bg-[#EAE0CE] p-3">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#8C7446]" />
+                <p className="text-xs leading-5 text-[#615B4D]">
+                  Demo checkout: UPI, card and net-banking selections are not connected to a payment gateway. Do not enter real payment credentials. Connect a verified provider before accepting live online payments.
+                </p>
               </div>
 
-              {/* Payment Methods */}
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {[
-                  {
-                    id: 'upi' as PaymentMethod,
-                    icon: QrCode,
-                    label: 'UPI',
-                  },
-                  {
-                    id: 'card' as PaymentMethod,
-                    icon: CreditCard,
-                    label: 'Card',
-                  },
-                  {
-                    id: 'netbanking' as PaymentMethod,
-                    icon: Store,
-                    label: 'Net Banking',
-                  },
-                  {
-                    id:
-                      orderType === 'pickup'
-                        ? ('pay_at_cafe' as PaymentMethod)
-                        : ('cash_on_delivery' as PaymentMethod),
-                    icon: DollarSign,
-                    label:
-                      orderType === 'pickup'
-                        ? 'Pay at Café'
-                        : 'Cash on Delivery',
-                  },
-                ].map((method) => {
+              <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {paymentOptions.map((method) => {
                   const Icon = method.icon;
-                  const selected =
-                    paymentMethod === method.id;
+                  const selected = paymentMethod === method.id;
 
                   return (
                     <button
-                      key={method.id}
                       type="button"
-                      onClick={() =>
-                        setPaymentMethod(method.id)
-                      }
-                      className={`rounded-xl border p-3 ${
+                      key={method.id}
+                      onClick={() => setPaymentMethod(method.id)}
+                      className={`rounded-xl border p-3 transition-colors ${
                         selected
-                          ? 'border-[#2C1810] bg-[#2C1810] text-white shadow-md'
-                          : 'border-[#E1D8D0] bg-white text-[#62554C] hover:border-[#CDB8A5]'
+                          ? 'border-[#B9A064] bg-[#292D1D] text-[#FFFCF6]'
+                          : 'border-[#D8CCB7] bg-[#FFFCF6] text-[#615B4D] hover:border-[#B9A064]'
                       }`}
                     >
                       <Icon className="mx-auto h-5 w-5" />
-
-                      <span className="mt-1.5 block text-[10px] font-bold">
+                      <span className="mt-2 block text-[10px] font-bold">
                         {method.label}
                       </span>
                     </button>
@@ -833,293 +683,163 @@ export const CheckoutModal: React.FC = () => {
                 })}
               </div>
 
-              {/* Payment Details */}
-              <div className="mt-5 rounded-2xl border border-[#E3D9D0] bg-white p-4 sm:p-5">
+              <div className="mt-4 rounded-2xl border border-[#D8CCB7] bg-[#FFFCF6] p-4 sm:p-5">
                 {paymentMethod === 'upi' && (
-                  <div className="space-y-4">
-                    <div className="flex flex-col items-center gap-4 rounded-2xl border border-[#E9E0D8] bg-[#FBF8F3] p-4 sm:flex-row">
-                      <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-xl bg-[#2C1810] p-3 text-[#E5B869]">
-                        <QrCode className="h-20 w-20" />
-                      </div>
-
-                      <div className="text-center sm:text-left">
-                        <p className="text-xs font-bold text-[#2C1810]">
-                          Scan with any UPI app
-                        </p>
-
-                        <p className="mt-1 text-[10px] leading-4 text-[#81746B]">
-                          Google Pay, PhonePe, Paytm, CRED or BHIM UPI.
-                        </p>
-
-                        <span className="mt-2 inline-block rounded-lg bg-white px-2.5 py-1 font-mono text-[10px] font-semibold text-[#5F5148] shadow-sm">
-                          classiccrush@upi
-                        </span>
-                      </div>
-                    </div>
-
+                  <div className="flex items-start gap-3">
+                    <QrCode className="mt-0.5 h-5 w-5 shrink-0 text-[#244536]" />
                     <div>
-                      <label className="mb-1.5 block text-[11px] font-semibold text-[#51443C]">
-                        Or enter UPI ID / VPA
-                      </label>
-
-                      <input
-                        type="text"
-                        placeholder="yourname@upi"
-                        value={upiIdInput}
-                        onChange={(event) =>
-                          setUpiIdInput(event.target.value)
-                        }
-                        className={inputClass}
-                      />
+                      <p className="text-sm font-bold text-[#292D1D]">UPI Payment</p>
+                      <p className="mt-1 text-xs leading-5 text-[#615B4D]">
+                        A real UPI payment requires the café's verified UPI ID and a valid payment integration. No scannable payment QR is configured here yet.
+                      </p>
                     </div>
                   </div>
                 )}
 
                 {paymentMethod === 'card' && (
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-2 rounded-xl bg-[#F7F0E8] p-3">
-                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#8C5D36]" />
-
-                      <p className="text-[10px] leading-4 text-[#75675E]">
-                        Test-mode payment form. Sensitive card details
-                        are not stored by this demo.
+                  <div className="flex items-start gap-3">
+                    <CreditCard className="mt-0.5 h-5 w-5 shrink-0 text-[#244536]" />
+                    <div>
+                      <p className="text-sm font-bold text-[#292D1D]">Card Payment</p>
+                      <p className="mt-1 text-xs leading-5 text-[#615B4D]">
+                        Card payments must be handled through a verified payment provider. Do not collect or store card numbers, expiry dates or CVV in this demo.
                       </p>
-                    </div>
-
-                    <div>
-                      <label className="mb-1.5 block text-[11px] font-semibold text-[#51443C]">
-                        Cardholder Name
-                      </label>
-
-                      <input
-                        type="text"
-                        placeholder="Your name"
-                        value={cardHolder}
-                        onChange={(event) =>
-                          setCardHolder(event.target.value)
-                        }
-                        className={inputClass}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="mb-1.5 block text-[11px] font-semibold text-[#51443C]">
-                        Card Number
-                      </label>
-
-                      <input
-                        type="text"
-                        placeholder="4532 •••• •••• 8892"
-                        value={cardNumber}
-                        onChange={(event) =>
-                          setCardNumber(event.target.value)
-                        }
-                        maxLength={19}
-                        className={`${inputClass} font-mono`}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="mb-1.5 block text-[11px] font-semibold text-[#51443C]">
-                          Expiry
-                        </label>
-
-                        <input
-                          type="text"
-                          placeholder="08/28"
-                          value={cardExpiry}
-                          onChange={(event) =>
-                            setCardExpiry(event.target.value)
-                          }
-                          maxLength={5}
-                          className={`${inputClass} font-mono`}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="mb-1.5 block text-[11px] font-semibold text-[#51443C]">
-                          CVV
-                        </label>
-
-                        <input
-                          type="password"
-                          placeholder="•••"
-                          value={cardCvv}
-                          onChange={(event) =>
-                            setCardCvv(event.target.value)
-                          }
-                          maxLength={3}
-                          className={`${inputClass} font-mono`}
-                        />
-                      </div>
                     </div>
                   </div>
                 )}
 
                 {paymentMethod === 'netbanking' && (
-                  <div>
-                    <label className="mb-1.5 block text-[11px] font-semibold text-[#51443C]">
-                      Select Your Bank
-                    </label>
-
-                    <select
-                      value={selectedBank}
-                      onChange={(event) =>
-                        setSelectedBank(event.target.value)
-                      }
-                      className={inputClass}
-                    >
-                      <option value="HDFC Bank">HDFC Bank</option>
-                      <option value="State Bank of India">
-                        State Bank of India (SBI)
-                      </option>
-                      <option value="ICICI Bank">ICICI Bank</option>
-                      <option value="Axis Bank">Axis Bank</option>
-                      <option value="Kotak Mahindra Bank">
-                        Kotak Mahindra Bank
-                      </option>
-                      <option value="Punjab National Bank">
-                        Punjab National Bank
-                      </option>
-                    </select>
+                  <div className="flex items-start gap-3">
+                    <Store className="mt-0.5 h-5 w-5 shrink-0 text-[#244536]" />
+                    <div>
+                      <p className="text-sm font-bold text-[#292D1D]">Net Banking</p>
+                      <p className="mt-1 text-xs leading-5 text-[#615B4D]">
+                        The bank selection and payment redirect need to be configured through a verified payment gateway.
+                      </p>
+                    </div>
                   </div>
                 )}
 
                 {(paymentMethod === 'cash_on_delivery' ||
                   paymentMethod === 'pay_at_cafe') && (
-                  <div className="rounded-2xl border border-[#E5D8C7] bg-[#F8F0E7] p-4">
-                    <div className="flex items-start gap-3">
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[#8C5D36]">
-                        <DollarSign className="h-4 w-4" />
-                      </span>
-
-                      <div>
-                        <p className="text-xs font-bold text-[#2C1810]">
-                          {orderType === 'pickup'
-                            ? 'Pay at Counter'
-                            : 'Cash on Delivery'}
-                        </p>
-
-                        <p className="mt-1 text-[10px] leading-4 text-[#7A6A5F]">
-                          {orderType === 'pickup'
-                            ? `Pay ₹${grandTotal} at the café counter when collecting your order.`
-                            : `Keep ₹${grandTotal} ready for the delivery rider.`}
-                        </p>
-                      </div>
+                  <div className="flex items-start gap-3">
+                    <DollarSign className="mt-0.5 h-5 w-5 shrink-0 text-[#244536]" />
+                    <div>
+                      <p className="text-sm font-bold text-[#292D1D]">
+                        {orderType === 'pickup' ? 'Pay at Café' : 'Cash on Delivery'}
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-[#615B4D]">
+                        {orderType === 'pickup'
+                          ? `The displayed order total is ₹${grandTotal}. Confirm that the café accepts payment at collection.`
+                          : `The displayed order total is ₹${grandTotal}. Confirm cash-on-delivery availability with the café.`}
+                      </p>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Order Summary */}
-              <div className="mt-5 rounded-2xl border border-[#E3D8CC] bg-[#F7F0E8] p-4 sm:p-5">
+              {/* Order summary */}
+              <div className="mt-5 rounded-2xl border border-[#D8CCB7] bg-[#EAE0CE]/60 p-4 sm:p-5">
                 <div className="mb-3 flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-[#B98A5B]" />
-
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8C5D36]">
-                    Order Summary
+                  <Sparkles className="h-4 w-4 text-[#8C7446]" />
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#292D1D]">
+                    Your Order
                   </p>
                 </div>
 
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between text-[#70635B]">
-                    <span>Items ({cart.length})</span>
+                <div className="space-y-3">
+                  {cart.map((item) => (
+                    <div key={item.id} className="flex justify-between gap-3 text-xs">
+                      <span className="min-w-0 text-[#615B4D]">
+                        {item.product.name} × {item.quantity}
+                      </span>
+                      <span className="shrink-0 font-semibold text-[#292D1D]">
+                        ₹{item.totalPrice}
+                      </span>
+                    </div>
+                  ))}
+                </div>
 
-                    <span className="font-semibold text-[#2C1810]">
-                      ₹{subtotal}
-                    </span>
+                <div className="mt-4 space-y-2 border-t border-[#D8CCB7] pt-3 text-xs">
+                  <div className="flex justify-between gap-3 text-[#615B4D]">
+                    <span>Subtotal</span>
+                    <span className="font-semibold text-[#292D1D]">₹{subtotal}</span>
                   </div>
 
                   {discount > 0 && (
-                    <div className="flex justify-between font-semibold text-emerald-700">
+                    <div className="flex justify-between gap-3 text-[#244536]">
                       <span>
-                        Discount
-                        {appliedCoupon?.code
-                          ? ` (${appliedCoupon.code})`
-                          : ''}
+                        Discount {appliedCoupon?.code ? `(${appliedCoupon.code})` : ''}
                       </span>
-
-                      <span>-₹{discount}</span>
+                      <span className="font-semibold">−₹{discount}</span>
                     </div>
                   )}
 
-                  <div className="flex justify-between text-[#70635B]">
-                    <span>
-                      {orderType === 'pickup'
-                        ? 'Café Pickup'
-                        : `Delivery · ${deliveryAddress.distanceKm} km`}
-                    </span>
-
-                    <span className="font-semibold text-[#2C1810]">
-                      {deliveryFee === 0
-                        ? 'FREE'
-                        : `₹${deliveryFee}`}
+                  <div className="flex justify-between gap-3 text-[#615B4D]">
+                    <span>{orderType === 'pickup' ? 'Pickup' : 'Delivery fee'}</span>
+                    <span className="font-semibold text-[#292D1D]">
+                      {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}
                     </span>
                   </div>
 
-                  <div className="flex justify-between text-[#70635B]">
-                    <span>GST & Packaging</span>
-
-                    <span className="font-semibold text-[#2C1810]">
-                      ₹{taxes}
-                    </span>
+                  <div className="flex justify-between gap-3 text-[#615B4D]">
+                    <span>Taxes & packaging</span>
+                    <span className="font-semibold text-[#292D1D]">₹{taxes}</span>
                   </div>
 
-                  <div className="mt-2 flex items-end justify-between border-t border-[#E2D5C8] pt-3">
+                  <div className="flex items-end justify-between gap-3 border-t border-[#D8CCB7] pt-3">
                     <div>
-                      <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[#9A6B45]">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#8C7446]">
                         Total Payable
                       </p>
-
-                      <p className="mt-0.5 font-serif text-xl font-bold text-[#2C1810]">
+                      <p className="mt-1 font-serif text-2xl font-bold text-[#292D1D]">
                         ₹{grandTotal}
                       </p>
                     </div>
-
-                    <span className="rounded-full bg-white px-2.5 py-1 text-[9px] font-semibold text-[#78675B]">
-                      {orderType === 'pickup'
-                        ? 'Pickup'
-                        : 'Delivery'}
+                    <span className="rounded-full border border-[#D8CCB7] bg-[#FFFCF6] px-3 py-2 text-[10px] font-semibold text-[#292D1D]">
+                      {orderType === 'pickup' ? 'Café Pickup' : 'Home Delivery'}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <button
                   type="button"
                   onClick={() => setCurrentStep(2)}
                   disabled={isProcessingPayment}
-                  className="inline-flex h-10 items-center justify-center gap-1 rounded-xl px-4 text-xs font-semibold text-[#6F625A] transition-colors hover:bg-[#F0E8DF] hover:text-[#2C1810] disabled:opacity-50"
+                  className="inline-flex min-h-11 items-center justify-center gap-1 rounded-xl px-4 text-xs font-semibold text-[#615B4D] hover:bg-[#EAE0CE] disabled:opacity-50"
                 >
-                  <ChevronLeft className="h-4 w-4" />
-                  Back to Address
+                  <ChevronLeft className="h-4 w-4" /> Back to Address
                 </button>
 
                 <button
                   type="button"
                   onClick={handleCompleteOrder}
-                  disabled={isProcessingPayment}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#2C1810] px-7 text-xs font-bold uppercase tracking-[0.08em] text-white shadow-[0_8px_24px_rgba(44,24,16,0.16)] transition-colors hover:bg-[#43271C] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={
+                    isProcessingPayment ||
+                    !isStep1Valid ||
+                    !isStep2Valid ||
+                    cart.length === 0
+                  }
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#B9A064] bg-[#292D1D] px-6 py-3 text-xs font-bold uppercase tracking-wider text-[#FFFCF6] hover:bg-[#244536] disabled:cursor-not-allowed disabled:border-[#D8CCB7] disabled:bg-[#D8CCB7] disabled:text-[#817969]"
                 >
                   {isProcessingPayment ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin text-[#D9A441]" />
-                      Placing Order...
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Processing...
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 className="h-4 w-4 text-[#D9A441]" />
+                      <CheckCircle2 className="h-4 w-4 text-[#D4BD85]" />
                       Place Order · ₹{grandTotal}
                     </>
                   )}
                 </button>
               </div>
-            </div>
+            </section>
           )}
-        </div>
+        </main>
       </div>
     </div>
   );
